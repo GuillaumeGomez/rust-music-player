@@ -3,11 +3,15 @@ rust-music-player
 
 A little music player in rust with rsfml and rfmod.
 
+
 ##Installation
 
 You must install on your computer the rfmod and the rsfml bindings before compiling this project.
+
 rfmod: https://github.com/GuillaumeGomez/rust-fmod
+
 rsfml: https://github.com/jeremyletang/rust-sfml
+
 
 ##License
 	Copyright (c) 2014 Guillaume Gomez
