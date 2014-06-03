@@ -20,10 +20,13 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-use rsfml::graphics::{RenderWindow, Color, Font, RectangleShape};
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f, Vector2u};
-use rfmod::Sound;
+use rsfml::window::{ContextSettings, VideoMode, event, Close, keyboard};
+use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape};
+use rfmod::enums::*;
+use rfmod::*;
+use playlist::PlayList;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -31,7 +34,8 @@ struct ProgressBar {
     line: rc::RectangleShape,
     progress_size: Vector2u,
     maximum: uint,
-    value: uint
+    value: uint,
+    //callback: fn(uint, uint) -> ()
 }
 
 impl ProgressBar {
@@ -72,7 +76,8 @@ pub struct GraphicHandler {
     pub text: rc::Text,
     pub timer: rc::Text,
     music_bar: ProgressBar,
-    volume_bar: ProgressBar
+    volume_bar: ProgressBar,
+    playlist: PlayList,
 }
 
 impl GraphicHandler {
@@ -81,8 +86,8 @@ impl GraphicHandler {
         self
     }
 
-    pub fn new(window: &RenderWindow) -> GraphicHandler {
-        let font = match Font::new_from_file("./font/REDHG___.TTF") {
+    pub fn new(window: &RenderWindow, playlist: PlayList) -> GraphicHandler {
+        let font = match Font::new_from_file("./font/arial.ttf") {
             Some(s) => s,
             None => fail!("Cannot create Font")
         };
@@ -101,12 +106,27 @@ impl GraphicHandler {
             volume_bar: ProgressBar::new(&Vector2u{x: window.get_size().x / 5, y: 10u32},
                 &Vector2u{x: window.get_size().x - window.get_size().x / 5, y: window.get_size().y - 19u32},
                 &Color::new_RGB(255, 25, 25), 100u),
+            playlist: playlist
         }.init()
     }
 
-    pub fn set_music(&mut self, name: String, length: uint) {
+    pub fn set_music(&mut self, fmod: &FmodSys, name: String) -> Result<Sound, String> {
+        let sound = match fmod.create_sound(name.clone(), None, None) {
+            Ok(s) => s,
+            Err(err) => {
+                println!("FmodSys.create_sound failed on this file : {}\nError : {}", name, err);
+                self.playlist.remove_current();
+                if self.playlist.get_nb_musics() == 0 {
+                    return Err(String::from_str("No more music"));
+                } else {
+                    let tmp_s = self.playlist.get_current();
+                    return self.set_music(fmod, tmp_s);
+                }
+            }
+        };
         self.text.set_string(name.as_slice());
-        self.music_bar.maximum = length;
+        self.music_bar.maximum = sound.get_length(FMOD_TIMEUNIT_MS).unwrap() as uint;
+        Ok(sound)
     }
 
     pub fn set_music_position(&mut self, position: uint) {
@@ -120,5 +140,98 @@ impl GraphicHandler {
         self.music_bar.draw(win);
         self.volume_bar.draw(win);
         win.display();
+    }
+
+    fn main_loop(&mut self, chan: &Channel, old_position: uint, length: u32) -> Option<uint> {
+        match chan.is_playing() {
+            Ok(b) => {
+                if b == true {
+                    let position = chan.get_position(FMOD_TIMEUNIT_MS).unwrap();
+
+                    if position != old_position {
+                        self.timer.set_string(format!("{:02u}:{:02u} / {:02u}:{:02u}",
+                            position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60).as_slice());
+                        Some(position)
+                    } else {
+                        Some(old_position)
+                    }
+                } else {
+                    None
+                }
+            }
+            Err(e) => fail!("fmod error : {}", e)
+        }
+    }
+
+    pub fn start(&mut self, window: &mut RenderWindow, fmod: &FmodSys) {
+        let mut old_position = 100u;
+        let mut tmp_s = self.playlist.get_current();
+        let mut sound = match self.set_music(fmod, tmp_s) {
+            Ok(s) => s,
+            Err(e) => fail!("Error : {}", e)
+        };
+        let mut chan = match sound.play() {
+            Ok(c) => c,
+            Err(e) => fail!("sound.play : {}", e)
+        };
+        let length = self.music_bar.maximum as u32;
+
+        while window.is_open() {
+            loop {
+                match window.poll_event() {
+                    event::Closed => window.close(),
+                    event::KeyReleased{code, ..} => match code {
+                        keyboard::Escape => window.close(),
+                        keyboard::Up => {
+                            tmp_s = self.playlist.get_prev();
+                            println!("new song : {}", tmp_s);
+                            sound = match self.set_music(fmod, tmp_s) {
+                                Ok(s) => s,
+                                Err(e) => fail!("Error : {}", e)
+                            };
+                            chan = match sound.play() {
+                                Ok(c) => c,
+                                Err(e) => fail!("sound.play : {}", e)
+                            };
+                        }
+                        keyboard::Down => {
+                            tmp_s = self.playlist.get_next();
+                            sound = match self.set_music(fmod, tmp_s) {
+                                Ok(s) => s,
+                                Err(e) => fail!("Error : {}", e)
+                            };
+                            chan = match sound.play() {
+                                Ok(c) => c,
+                                Err(e) => fail!("sound.play : {}", e)
+                            };
+                        }
+                        _ => {}
+                    },
+                    event::NoEvent => break,
+                    _ => {}
+                }
+            }
+
+            old_position = match self.main_loop(&chan, old_position, length) {
+                Some(p) => {
+                    self.set_music_position(p);
+                    p
+                },
+                None => {
+                    tmp_s = self.playlist.get_next();
+                    sound = match self.set_music(fmod, tmp_s) {
+                        Ok(s) => s,
+                        Err(e) => fail!("Error : {}", e)
+                    };
+                    chan = match sound.play() {
+                        Ok(c) => c,
+                        Err(e) => fail!("sound.play : {}", e)
+                    };
+                    100u
+                }
+            };
+
+            self.update(window);
+        }
     }
 }

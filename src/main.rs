@@ -25,38 +25,23 @@
 extern crate rsfml;
 extern crate rfmod;
 
-use rsfml::window::{ContextSettings, VideoMode, event, Close, keyboard};
-use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape};
-use rsfml::system::vector2::{Vector2f};
-use rfmod::enums::*;
+use rsfml::window::{ContextSettings, VideoMode, Close};
+use rsfml::graphics::{RenderWindow};
 use rfmod::*;
-use std::io::timer::sleep;
+use playlist::PlayList;
 use graphic_handler::GraphicHandler;
+use std::os;
 
 mod graphic_handler;
-
-fn main_loop(chan: &Channel, graph: &mut GraphicHandler, old_position: uint, length: u32) -> uint {
-    match chan.is_playing() {
-        Ok(b) => {
-            if b == true {
-                let position = chan.get_position(FMOD_TIMEUNIT_MS).unwrap();
-
-                if position != old_position {
-                    graph.timer.set_string(format!("{:02u}:{:02u} / {:02u}:{:02u}",
-                        position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60).as_slice());
-                    position
-                } else {
-                    old_position
-                }
-            } else {
-                old_position
-            }
-        }
-        Err(e) => fail!("fmod error : {}", e)
-    }
-}
+mod playlist;
 
 fn main() {
+    let args = Vec::from_slice(os::args().tail());
+
+    if args.len() < 1 {
+        fail!("USAGE: ./music_player [music_file1 music_file2 ...]");
+    }
+
     let fmod = match FmodSys::new() {
         Ok(f) => {
             f.init();
@@ -71,37 +56,10 @@ fn main() {
         Some(window) => window,
         None => fail!("Cannot create a new Render Window.")
     };
-    let sound = match fmod.create_sound(String::from_str("/windows/Users/User/Music/Daddy DJ-Daddy DJ.mp3"), None, None) {
-        Ok(s) => s,
-        Err(err) => fail!("FmodSys.create_sound failed : {}", err),
-    };
-    let mut graph = GraphicHandler::new(&window);
-    let mut old_position = 100u;
-    let chan = match sound.play() {
-        Ok(c) => c,
-        Err(e) => fail!("sound.play : {}", e)
-    };
-    let length = sound.get_length(FMOD_TIMEUNIT_MS).unwrap();
 
-    graph.set_music(sound.get_name(100u32).unwrap(), sound.get_length(FMOD_TIMEUNIT_MS).unwrap() as uint);
+    
+    let mut graph = GraphicHandler::new(&window, PlayList::from_vec(&args));
+
     window.set_vertical_sync_enabled(true);
-
-    while window.is_open() {
-        loop {
-            match window.poll_event() {
-                event::Closed => window.close(),
-                event::KeyPressed{code, ..} => match code {
-                    keyboard::Escape => window.close(),
-                    _ => {}
-                },
-                event::NoEvent => break,
-                _ => {}
-            }
-        }
-
-        old_position = main_loop(&chan, &mut graph, old_position, length);
-        graph.set_music_position(old_position);
-
-        graph.update(&mut window);
-    }
+    graph.start(&mut window, &fmod);
 }
