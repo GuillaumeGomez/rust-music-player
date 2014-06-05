@@ -28,6 +28,10 @@ pub struct PlayList {
 }
 
 impl PlayList {
+    pub fn to_vec(&self) -> Vec<String> {
+        self.musics.clone()
+    }
+
     pub fn new() -> PlayList {
         PlayList {
             musics: Vec::new(),
@@ -113,5 +117,9 @@ impl PlayList {
 
     pub fn get_nb_musics(&self) -> uint {
         self.musics.len()
+    }
+
+    pub fn get_pos(&self) -> uint {
+        self.actual
     }
 }

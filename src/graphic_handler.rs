@@ -20,9 +20,11 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
+#![allow(dead_code)]
+
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f, Vector2u};
-use rsfml::window::{ContextSettings, VideoMode, event, Close, keyboard};
+use rsfml::window::{ContextSettings, VideoMode, event, Close, keyboard, mouse};
 use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape};
 use rfmod::enums::*;
 use rfmod::*;
@@ -30,24 +32,126 @@ use playlist::PlayList;
 use std::rc::Rc;
 use std::cell::RefCell;
 
+struct GraphicSpectrum {
+    line: rc::RectangleShape
+}
+
+struct GraphicPlayList {
+    musics: Vec<String>,
+    texts: Vec<rc::Text>,
+    graphic_size: Vector2u,
+    position: Vector2u,
+    to_draw: uint,
+    current: uint
+}
+
+impl GraphicPlayList {
+    fn init(mut self, font: &Font) -> GraphicPlayList {
+        for tmp in self.musics.iter() {
+            self.texts.push(match rc::Text::new_init(tmp.as_slice().split_terminator('/').last().unwrap(), Rc::new(RefCell::new(font.clone())), 20) {
+                            Some(t) => t,
+                            None => fail!("Cannot create Text")
+                        });
+        }
+        let tmp = self.position.clone();
+        self.set_position(&tmp);
+        self.set_current(0u);
+        self
+    }
+
+    fn new(musics: Vec<String>, font: &Font) -> GraphicPlayList {
+        GraphicPlayList {
+            musics: musics,
+            texts: Vec::new(),
+            graphic_size: Vector2u{x: 0u32, y: 0u32},
+            position: Vector2u{x: 0u32, y: 0u32},
+            to_draw: 0u,
+            current: 1u
+        }.init(font)
+    }
+
+    fn new_init(musics: Vec<String>, font: &Font, position: &Vector2u, size: &Vector2u) -> GraphicPlayList {
+        GraphicPlayList {
+            musics: musics,
+            texts: Vec::new(),
+            graphic_size: size.clone(),
+            position: position.clone(),
+            to_draw: 0u,
+            current: 1u
+        }.init(font)
+    }
+
+    fn set_position(&mut self, position: &Vector2u) {
+        let mut pos = position.y;
+        let limit = self.graphic_size.y + position.y;
+
+        self.position = position.clone();
+        self.to_draw = 0;
+        for tmp in self.texts.mut_iter() {
+            tmp.set_position(&Vector2f{x: self.position.x as f32, y: pos as f32 + self.position.y as f32});
+            if pos < limit {
+                self.to_draw += 1;
+            }
+            pos += 22u32;
+        }
+    }
+
+    fn draw(&mut self, win: &mut RenderWindow) {
+        let mut it = 0u;
+
+        for tmp in self.texts.mut_iter() {
+            if it == self.to_draw {
+                break;
+            }
+            win.draw(tmp);
+            it += 1;
+        }
+    }
+
+    fn set_current(&mut self, current: uint) {
+        if current != self.current {
+            self.texts.get_mut(current).set_color(&Color::new_RGB(255, 125, 25));
+            self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 2555, 255));
+            self.current = current;
+        }
+    }
+
+    fn remove_music(&mut self, pos: uint) {
+        self.texts.remove(pos);
+        let tmp = self.position;
+        self.set_position(&tmp);
+    }
+}
+
 struct ProgressBar {
     line: rc::RectangleShape,
     progress_size: Vector2u,
     maximum: uint,
     value: uint,
-    //callback: fn(uint, uint) -> ()
+    real_value: uint
 }
 
 impl ProgressBar {
-    fn new(size: &Vector2u, position: &Vector2u, color: &Color, maximum: uint) -> ProgressBar {
+    fn new<T>(color: &Color) -> ProgressBar {
         ProgressBar {
-            line: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32, y: size.y as f32}) {
+            line: rc::RectangleShape::new().unwrap(),
+            progress_size: Vector2u{x: 0, y: 0},
+            maximum: 1,
+            value: 0u,
+            real_value: 0u
+        }.init(color, &Vector2u{x: 0, y: 0})
+    }
+
+    fn new_init(size: &Vector2u, position: &Vector2u, color: &Color, maximum: uint) -> ProgressBar {
+        ProgressBar {
+            line: match rc::RectangleShape::new_init(&Vector2f{x: 0u as f32, y: size.y as f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create progress bar")
             },
             progress_size: size.clone(),
             maximum: maximum,
-            value: 0u
+            value: 0u,
+            real_value: 0u
         }.init(color, position)
     }
 
@@ -61,19 +165,36 @@ impl ProgressBar {
         win.draw(&self.line);
     }
 
-    fn set_position(&mut self, position: uint) {
-        let new_value = position as f32 / self.maximum as f32 * self.progress_size.x as f32;
+    fn set_size(&mut self, size: &Vector2u) {
+        self.progress_size = size.clone();
+        self.line.set_size(&Vector2f{x: 0f32, y: size.y as f32});
+        self.maximum = size.x as uint;
+    }
 
-        if new_value != self.value as f32 {
-            self.value = new_value as uint;
+    fn set_position(&mut self, position: &Vector2u) {
+        self.line.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
+    }
+
+    fn set_progress(&mut self, position: uint) {
+        let new_value = position * self.progress_size.x as uint / self.maximum;
+
+        if new_value != self.value {
+            self.value = new_value;
+            self.real_value = position;
             self.line.set_size(&Vector2f{x: self.value as f32, y: self.progress_size.y as f32});
         }
+    }
+
+    fn click(&mut self, pos: &Vector2u, width: u32) {
+        let in_order = (pos.x as u32 - self.line.get_position().x as u32) * self.progress_size.x as u32 / width;
+
+        self.set_progress(in_order as uint * self.maximum / self.progress_size.x as uint);
     }
 }
 
 pub struct GraphicHandler {
     font: Font,
-    pub text: rc::Text,
+    musics: GraphicPlayList,
     pub timer: rc::Text,
     music_bar: ProgressBar,
     volume_bar: ProgressBar,
@@ -82,7 +203,7 @@ pub struct GraphicHandler {
 
 impl GraphicHandler {
     fn init(mut self) -> GraphicHandler {
-        self.timer.set_position(&Vector2f{x: 0f32, y: 25f32});
+        //self.timer.set_progress(&Vector2f{x: 0f32, y: 25f32});
         self
     }
 
@@ -93,17 +214,16 @@ impl GraphicHandler {
         };
         GraphicHandler {
             font: font.clone(),
-            text: match rc::Text::new_init("", Rc::new(RefCell::new(font.clone())), 20) {
-                Some(t) => t,
-                None => fail!("Cannot create Text")
-            },
+            musics: GraphicPlayList::new_init(playlist.to_vec(), &font,
+                &Vector2u{x: window.get_size().x - (window.get_size().x - 512u32), y: 0},
+                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 20u32}),
             timer: match rc::Text::new_init("", Rc::new(RefCell::new(font)), 20) {
                 Some(t) => t,
                 None => fail!("Cannot create Text")
             },
-            music_bar: ProgressBar::new(&Vector2u{x: window.get_size().x, y: 8u32}, &Vector2u{x: 0u32, y: window.get_size().y - 8u32},
+            music_bar: ProgressBar::new_init(&Vector2u{x: window.get_size().x, y: 8u32}, &Vector2u{x: 0u32, y: window.get_size().y - 8u32},
                 &Color::new_RGB(255, 255, 255), 1u),
-            volume_bar: ProgressBar::new(&Vector2u{x: window.get_size().x / 5, y: 10u32},
+            volume_bar: ProgressBar::new_init(&Vector2u{x: window.get_size().x / 5, y: 10u32},
                 &Vector2u{x: window.get_size().x - window.get_size().x / 5, y: window.get_size().y - 19u32},
                 &Color::new_RGB(255, 25, 25), 100u),
             playlist: playlist
@@ -115,6 +235,7 @@ impl GraphicHandler {
             Ok(s) => s,
             Err(err) => {
                 println!("FmodSys.create_sound failed on this file : {}\nError : {}", name, err);
+                self.musics.remove_music(self.playlist.get_pos());
                 self.playlist.remove_current();
                 if self.playlist.get_nb_musics() == 0 {
                     return Err(String::from_str("No more music"));
@@ -124,18 +245,18 @@ impl GraphicHandler {
                 }
             }
         };
-        self.text.set_string(name.as_slice());
+        self.musics.set_current(self.playlist.get_pos());
         self.music_bar.maximum = sound.get_length(FMOD_TIMEUNIT_MS).unwrap() as uint;
         Ok(sound)
     }
 
     pub fn set_music_position(&mut self, position: uint) {
-        self.music_bar.set_position(position);
+        self.music_bar.set_progress(position);
     }
 
     pub fn update(&mut self, win: &mut RenderWindow) {
         win.clear(&Color::new_RGB(0, 0, 0));
-        win.draw(&self.text);
+        self.musics.draw(win);
         win.draw(&self.timer);
         self.music_bar.draw(win);
         self.volume_bar.draw(win);
@@ -184,7 +305,6 @@ impl GraphicHandler {
                         keyboard::Escape => window.close(),
                         keyboard::Up => {
                             tmp_s = self.playlist.get_prev();
-                            println!("new song : {}", tmp_s);
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
                                 Err(e) => fail!("Error : {}", e)
@@ -193,6 +313,7 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
+                            self.musics.set_current(self.playlist.get_pos());
                         }
                         keyboard::Down => {
                             tmp_s = self.playlist.get_next();
@@ -204,7 +325,17 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
+                            self.musics.set_current(self.playlist.get_pos());
                         }
+                        _ => {}
+                    },
+                    event::MouseButtonReleased{button, x, y} => match button {
+                        mouse::MouseLeft => {
+                            if y >= window.get_size().y as int - self.music_bar.progress_size.y as int {
+                                self.music_bar.click(&Vector2u{x: x as u32, y: y as u32}, window.get_size().x);
+                                chan.set_position(self.music_bar.real_value, FMOD_TIMEUNIT_MS);
+                            }
+                        },
                         _ => {}
                     },
                     event::NoEvent => break,
