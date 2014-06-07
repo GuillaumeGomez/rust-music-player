@@ -74,6 +74,10 @@ impl GraphicSpectrum {
             win.draw(tmp);
         }
     }
+
+    fn is_inside(&self, pos: &Vector2u) -> bool {
+        pos.y <= self.height as u32 && pos.x <= 512
+    }
 }
 
 struct GraphicPlayList {
@@ -83,16 +87,18 @@ struct GraphicPlayList {
     position: Vector2u,
     to_draw: uint,
     current: uint,
-    border: rc::RectangleShape
+    border: rc::RectangleShape,
+    hover_element: Option<uint>,
+    add_to_view: int
 }
 
 impl GraphicPlayList {
     fn init(mut self, font: &Font) -> GraphicPlayList {
         for tmp in self.musics.iter() {
             self.texts.push(match rc::Text::new_init(tmp.as_slice().split_terminator('/').last().unwrap(), Rc::new(RefCell::new(font.clone())), 20) {
-                            Some(t) => t,
-                            None => fail!("Cannot create Text")
-                        });
+                Some(t) => t,
+                None => fail!("Cannot create Text")
+            });
         }
         let tmp = self.position.clone();
         self.set_position(&tmp);
@@ -111,7 +117,9 @@ impl GraphicPlayList {
             border: match rc::RectangleShape::new_init(&Vector2f{x: 0f32, y: 1f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for GraphicPlayList")
-            }
+            },
+            hover_element: None,
+            add_to_view: 0i
         }.init(font)
     }
 
@@ -126,7 +134,9 @@ impl GraphicPlayList {
             border: match rc::RectangleShape::new_init(&Vector2f{x: 1f32, y: size.y as f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for GraphicPlayList")
-            }
+            },
+            hover_element: None,
+            add_to_view: 0i
         }.init(font)
     }
 
@@ -138,7 +148,7 @@ impl GraphicPlayList {
         self.to_draw = 0;
         self.border.set_position(&Vector2f{x: position.x as f32 - 1f32, y: position.y as f32});
         for tmp in self.texts.mut_iter() {
-            tmp.set_position(&Vector2f{x: self.position.x as f32, y: pos as f32 + self.position.y as f32});
+            tmp.set_position(&Vector2f{x: self.position.x as f32 + 4f32, y: pos as f32 + self.position.y as f32});
             if pos < limit {
                 self.to_draw += 1;
             }
@@ -146,14 +156,31 @@ impl GraphicPlayList {
         }
     }
 
+    fn set_to_add(&mut self, to_add: int) {
+        let tmp_add = to_add * 22i;
+        let max = (self.texts.len() as int + 2i) * 22i;
+
+        if self.add_to_view != to_add && tmp_add >= 0i && tmp_add + self.to_draw as int * 22i < max {
+            let mut pos = self.position.y as int - tmp_add as int;
+            for tmp in self.texts.mut_iter() {
+                let x = tmp.get_position().x;
+                tmp.set_position(&Vector2f{x: x as f32, y: pos as f32});
+                pos += 22i;
+            }
+            self.add_to_view = to_add;
+        }
+    }
+
     fn draw(&mut self, win: &mut RenderWindow) {
-        let mut it = 0u;
+        let mut it = 0i;
 
         for tmp in self.texts.mut_iter() {
-            if it == self.to_draw {
+            if it == self.to_draw as int + self.add_to_view {
                 break;
             }
-            win.draw(tmp);
+            if it >= self.add_to_view as int {
+                win.draw(tmp);
+            }
             it += 1;
         }
         win.draw(&self.border);
@@ -164,6 +191,11 @@ impl GraphicPlayList {
             self.texts.get_mut(current).set_color(&Color::new_RGB(255, 125, 25));
             self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 255, 255));
             self.current = current;
+            if self.current + 2u >= self.to_draw {
+                self.set_to_add(self.current as int + 2i - self.to_draw as int);
+            } else {
+                self.set_to_add(0i);
+            }
         }
     }
 
@@ -175,7 +207,68 @@ impl GraphicPlayList {
 
     fn is_inside(&self, pos: &Vector2u) -> bool {
         pos.y >= self.position.y && pos.y <= self.position.y + self.graphic_size.y &&
-        pos.x >= self.position.x && pos.y <= self.position.x + self.graphic_size.x
+        pos.x >= self.position.x && pos.x <= self.position.x + self.graphic_size.x
+    }
+
+    fn mouse_leave(&mut self) {
+        match self.hover_element {
+            Some(s) => {
+                self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                self.hover_element = None;
+            }
+            None => {}
+        }
+    }
+
+    fn click(&mut self, y: int) -> bool {
+        if y >= self.position.y as int {
+            let tmp = ((y as f32 - self.position.y as f32) / 22f32 + self.add_to_view as f32) as uint;
+            
+            if tmp < self.texts.len() {
+                self.hover_element = match self.hover_element {
+                    Some(s) => {
+                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                        None
+                    }
+                    None => None
+                };
+                self.set_current(tmp);
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    fn cursor_moved(&mut self, y: int) {
+        if y >= self.position.y as int {
+            let tmp = ((y as f32 - self.position.y as f32) / 22f32 + self.add_to_view as f32) as uint;
+
+            if tmp >= self.texts.len() {
+                self.hover_element = None;
+                return;
+            }
+            match self.hover_element {
+                Some(s) => {
+                    if self.current == tmp {
+                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                        self.hover_element = None;
+                    } else if s != tmp {
+                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                        self.hover_element = Some(tmp);
+                        self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
+                    }
+                }
+                None => {
+                    if self.current != tmp {
+                        self.hover_element = Some(tmp);
+                        self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
+                    } 
+                }
+            }
+        }
     }
 }
 
@@ -210,8 +303,22 @@ impl GraphicTimer {
     }
 
     fn set_position(&mut self, position: &Vector2u) {
-        self.cleaner.set_position(&Vector2f{x: self.position.x as f32, y: self.position.y as f32});
-        self.timer.set_position(&Vector2f{x: self.position.x as f32 + 5f32, y: self.position.y as f32 + 2f32});
+        self.cleaner.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
+        self.timer.set_position(&Vector2f{x: position.x as f32 + 5f32, y: position.y as f32 + 1f32});
+        self.position = position.clone();
+    }
+
+    fn update_display(&mut self, position: uint, length: uint) {
+        let st = String::from_str(format!("{:02u}:{:02u} / {:02u}:{:02u}",
+            position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60).as_slice());
+
+        if st != self.timer.get_string() {
+            self.timer.set_string(st.as_slice());
+            let size = self.timer.get_local_bounds().width;
+            let y = self.timer.get_position().y;
+            self.timer.set_position(&Vector2f{x: (self.cleaner.get_size().x - 1f32 - size as f32) / 2f32 + self.position.x as f32,
+                                              y: y});
+        }
     }
 
     fn draw(&self, win: &mut RenderWindow) {
@@ -309,7 +416,7 @@ impl ProgressBar {
 
     fn is_inside(&self, pos: &Vector2u) -> bool {
         pos.y >= self.line.get_position().y as u32 && pos.y <= self.line.get_position().y as u32 + self.graphic_size.y &&
-        pos.x >= self.line.get_position().x as u32 && pos.y <= self.line.get_position().x as u32 + self.graphic_size.x
+        pos.x >= self.line.get_position().x as u32 && pos.x <= self.line.get_position().x as u32 + self.graphic_size.x
     }
 }
 
@@ -326,7 +433,6 @@ pub struct GraphicHandler {
 impl GraphicHandler {
     fn init(mut self) -> GraphicHandler {
         self.volume_bar.set_progress(100);
-        self.timer.set_position(&Vector2u{x: 513u32, y: self.volume_bar.line.get_position().y as u32});
         self
     }
 
@@ -338,14 +444,14 @@ impl GraphicHandler {
         GraphicHandler {
             font: font.clone(),
             musics: GraphicPlayList::new_init(playlist.to_vec(), &font,
-                &Vector2u{x: window.get_size().x - (window.get_size().x - 513u32), y: 0},
-                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 20u32}),
-            timer: GraphicTimer::new(font, &Vector2u{x: window.get_size().x - 632u32, y: 24u32},
-                                        &Vector2u{x: 513u32, y: window.get_size().y - 35u32}),
+                &Vector2u{x: window.get_size().x - (window.get_size().x - 512u32), y: 0},
+                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 32u32}),
+            timer: GraphicTimer::new(font, &Vector2u{x: window.get_size().x - 633u32, y: 24u32},
+                                        &Vector2u{x: window.get_size().x - (window.get_size().x - 634u32), y: window.get_size().y - 35u32}),
             music_bar: ProgressBar::new_init(&Vector2u{x: window.get_size().x, y: 8u32}, &Vector2u{x: 0u32, y: window.get_size().y - 8u32},
                 &Color::new_RGB(255, 255, 255), 1u),
             volume_bar: ProgressBar::new_init(&Vector2u{x: 120u32, y: 20u32},
-                &Vector2u{x: window.get_size().x - 120u32, y: window.get_size().y - 29u32},
+                &Vector2u{x: 513u32, y: window.get_size().y - 30u32},
                 &Color::new_RGB(255, 25, 25), 100u),
             playlist: playlist,
             spectrum: GraphicSpectrum::new(window.get_size().y as uint - 9u)
@@ -394,8 +500,7 @@ impl GraphicHandler {
 
                     if position != old_position {
                         self.spectrum.update_spectrum(chan.get_spectrum(512u, 0i32, fmod::DSP_FFT_WindowRect).unwrap());
-                        self.timer.timer.set_string(format!("{:02u}:{:02u} / {:02u}:{:02u}",
-                            position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60).as_slice());
+                        self.timer.update_display(position, length as uint);
                         Some(position)
                     } else {
                         Some(old_position)
@@ -437,7 +542,6 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
-                            self.musics.set_current(self.playlist.get_pos());
                         }
                         keyboard::Down => {
                             tmp_s = self.playlist.get_next();
@@ -449,7 +553,9 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
-                            self.musics.set_current(self.playlist.get_pos());
+                        }
+                        keyboard::Space => {
+                            chan.set_paused(!chan.get_paused().unwrap());
                         }
                         _ => {}
                     },
@@ -472,10 +578,35 @@ impl GraphicHandler {
                             } else if self.volume_bar.is_inside(&Vector2u{x: x as u32, y: y as u32}) {
                                 self.volume_bar.click(&Vector2u{x: x as u32, y: y as u32});
                                 chan.set_volume(self.volume_bar.real_value as f32 / 100f32);
+                            } else if self.musics.is_inside(&Vector2u{x: x as u32, y: y as u32}) {
+                                if self.musics.click(y) {
+                                    self.playlist.set_actual(self.musics.current);
+
+                                    let tmp_s = self.playlist.get_current();
+
+                                    sound = match self.set_music(fmod, tmp_s) {
+                                        Ok(s) => s,
+                                        Err(e) => fail!("Error : {}", e)
+                                    };
+                                    chan = match sound.play() {
+                                        Ok(c) => c,
+                                        Err(e) => fail!("sound.play : {}", e)
+                                    };
+                                }
                             }
                         },
                         _ => {}
                     },
+                    event::MouseWheelMoved{delta, ..} => {
+                        self.musics.set_to_add(self.musics.add_to_view as int + delta);
+                    },
+                    event::MouseMoved{x, y} => {
+                        if self.musics.is_inside(&Vector2u{x: x as u32, y: y as u32}) {
+                            self.musics.cursor_moved(y);
+                        } else {
+                            self.musics.mouse_leave();
+                        }
+                    }
                     event::NoEvent => break,
                     _ => {}
                 }

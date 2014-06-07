@@ -61,5 +61,6 @@ fn main() {
     let mut graph = GraphicHandler::new(&window, PlayList::from_vec(&args));
 
     window.set_vertical_sync_enabled(true);
+    window.set_framerate_limit(30u);
     graph.start(&mut window, &fmod);
 }

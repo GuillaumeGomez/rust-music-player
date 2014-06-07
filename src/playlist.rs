@@ -61,7 +61,7 @@ impl PlayList {
     pub fn get_next(&mut self) -> String {
         self.actual = if self.musics.len() == 0 {
             0u
-        } else if self.actual >= self.musics.len() {
+        } else if self.actual >= self.musics.len() - 1 {
             0u
         } else {
             self.actual + 1

@@ -12,6 +12,20 @@ rfmod: https://github.com/GuillaumeGomez/rust-fmod
 
 rsfml: https://github.com/jeremyletang/rust-sfml
 
+###How to
+
+Here is the list of the binded keyboards keys:
+ * ESC : exit the program
+ * UP / DOWN : change the music
+ * add / substract : change the music volume
+ * Space : pause / unpause current music
+
+ You can also interact with the software like this :
+  * you can scroll the playlist
+  * you can click on a music to play it
+  * you can click on the music progress bar to go to precise position
+  * you can click on the volume progress bar to change the music's volume
+
 
 ##License
 	Copyright (c) 2014 Guillaume Gomez
