@@ -34,6 +34,10 @@ use std::os;
 
 mod graphic_handler;
 mod playlist;
+mod graphic_playlist;
+mod graphic_timer;
+mod progress_bar;
+mod graphic_spectrum;
 
 fn main() {
     let args = Vec::from_slice(os::args().tail());
