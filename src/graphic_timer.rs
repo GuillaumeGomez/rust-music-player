@@ -38,7 +38,7 @@ pub struct GraphicTimer {
 impl GraphicTimer {
     pub fn new(font: Font, size: &Vector2u, position: &Vector2u) -> GraphicTimer {
         GraphicTimer {
-            timer: match rc::Text::new_init("", Rc::new(RefCell::new(font)), 20) {
+            timer: match rc::Text::new_init("", Rc::new(RefCell::new(font.clone())), 20) {
                 Some(t) => t,
                 None => fail!("Cannot create GraphicTimer")
             },

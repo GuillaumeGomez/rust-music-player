@@ -58,7 +58,7 @@ impl GraphicHandler {
             font: font.clone(),
             musics: GraphicPlayList::new_init(playlist.to_vec(), &font,
                 &Vector2u{x: window.get_size().x - (window.get_size().x - 512u32), y: 0},
-                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 32u32}),
+                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 35u32}),
             timer: GraphicTimer::new(font, &Vector2u{x: window.get_size().x - 633u32, y: 24u32},
                                         &Vector2u{x: window.get_size().x - (window.get_size().x - 634u32), y: window.get_size().y - 35u32}),
             music_bar: ProgressBar::new_init(&Vector2u{x: window.get_size().x, y: 8u32}, &Vector2u{x: 0u32, y: window.get_size().y - 8u32},

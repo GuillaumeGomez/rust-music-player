@@ -111,6 +111,9 @@ impl GraphicPlayList {
             }
             pos += 22u32;
         }
+        if self.to_draw > 0 && self.to_draw * 22u > limit as uint + 2u {
+            self.to_draw -= 1;
+        }
         self.need_to_draw = true;
     }
 
