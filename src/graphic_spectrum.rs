@@ -28,7 +28,8 @@ use rsfml::graphics::{RenderWindow, Color, RectangleShape};
 
 pub struct GraphicSpectrum {
     spectrum: Vec<rc::RectangleShape>,
-    height: uint
+    height: uint,
+    cleaner: rc::RectangleShape
 }
 
 impl GraphicSpectrum {
@@ -44,13 +45,18 @@ impl GraphicSpectrum {
             self.spectrum.get_mut(it).set_position(&Vector2f{x: it as f32, y: self.height as f32});
             it += 1;
         }
+        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
         self
     }
 
     pub fn new(height: uint) -> GraphicSpectrum {
         GraphicSpectrum {
             spectrum: Vec::new(),
-            height: height
+            height: height,
+            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: 512f32, y: height as f32}) {
+                Some(l) => l,
+                None => fail!("Cannot create cleaner for GraphicSpectrum")
+            },
         }.init()
     }
 
@@ -64,6 +70,7 @@ impl GraphicSpectrum {
     }
 
     pub fn draw(&mut self, win: &mut RenderWindow) {
+        win.draw(&self.cleaner);
         for tmp in self.spectrum.mut_iter() {
             win.draw(tmp);
         }

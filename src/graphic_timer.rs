@@ -31,7 +31,8 @@ use std::cell::RefCell;
 pub struct GraphicTimer {
     timer: rc::Text,
     cleaner: rc::RectangleShape,
-    position: Vector2u
+    position: Vector2u,
+    need_to_draw: bool
 }
 
 impl GraphicTimer {
@@ -45,7 +46,8 @@ impl GraphicTimer {
                 Some(l) => l,
                 None => fail!("Cannot create cleaner for GraphicTimer")
             },
-            position: position.clone()
+            position: position.clone(),
+            need_to_draw: true
         }.init()
     }
 
@@ -62,6 +64,7 @@ impl GraphicTimer {
         self.cleaner.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
         self.timer.set_position(&Vector2f{x: position.x as f32 + 5f32, y: position.y as f32 + 1f32});
         self.position = position.clone();
+        self.need_to_draw = true;
     }
 
     pub fn update_display(&mut self, position: uint, length: uint) {
@@ -69,6 +72,7 @@ impl GraphicTimer {
             position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60).as_slice());
 
         if st != self.timer.get_string() {
+            self.need_to_draw = true;
             self.timer.set_string(st.as_slice());
             let size = self.timer.get_local_bounds().width;
             let y = self.timer.get_position().y;
@@ -77,8 +81,11 @@ impl GraphicTimer {
         }
     }
 
-    pub fn draw(&self, win: &mut RenderWindow) {
-        win.draw(&self.cleaner);
-        win.draw(&self.timer);
+    pub fn draw(&mut self, win: &mut RenderWindow) {
+        if self.need_to_draw {
+            win.draw(&self.cleaner);
+            win.draw(&self.timer);
+            self.need_to_draw = false;
+        }
     }
 }

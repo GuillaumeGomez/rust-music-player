@@ -33,6 +33,7 @@ pub struct ProgressBar {
     value: uint,
     real_value: uint,
     cleaner: rc::RectangleShape,
+    need_to_draw: bool
 }
 
 impl ProgressBar {
@@ -46,7 +47,8 @@ impl ProgressBar {
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: 0f32, y: 1f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for ProgressBar")
-            }
+            },
+            need_to_draw: true
         }.init(color, &Vector2u{x: 0, y: 0})
     }
 
@@ -63,7 +65,8 @@ impl ProgressBar {
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for ProgressBar")
-            }
+            },
+            need_to_draw: true
         }.init(color, position)
     }
 
@@ -76,20 +79,25 @@ impl ProgressBar {
         self
     }
 
-    pub fn draw(&self, win: &mut RenderWindow) {
-        win.draw(&self.cleaner);
-        win.draw(&self.line);
+    pub fn draw(&mut self, win: &mut RenderWindow) {
+        if self.need_to_draw {
+            win.draw(&self.cleaner);
+            win.draw(&self.line);
+            self.need_to_draw = false;
+        }
     }
 
     pub fn set_size(&mut self, size: &Vector2u) {
+        self.need_to_draw = true;
         self.graphic_size = size.clone();
         self.cleaner.set_size(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32});
         self.set_progress(self.real_value);
     }
 
     pub fn set_position(&mut self, position: &Vector2u) {
+        self.need_to_draw = true;
         self.line.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
-        self.cleaner.set_position(&Vector2f{x: position.x as f32 - 1f32, y: position.y as f32 - 1f32});
+        self.cleaner.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
     }
 
     pub fn set_progress(&mut self, position: uint) {
@@ -101,6 +109,7 @@ impl ProgressBar {
         let new_value = tmp * self.graphic_size.x as uint / self.maximum;
 
         if new_value != self.value {
+            self.need_to_draw = true;
             self.value = new_value;
             self.real_value = position;
             self.line.set_size(&Vector2f{x: self.value as f32, y: self.graphic_size.y as f32});

@@ -35,13 +35,17 @@ pub struct GraphicPlayList {
     position: Vector2u,
     to_draw: uint,
     current: uint,
-    border: rc::RectangleShape,
     hover_element: Option<uint>,
-    add_to_view: int
+    add_to_view: int,
+    cleaner: rc::RectangleShape,
+    need_to_draw: bool
 }
 
 impl GraphicPlayList {
     fn init(mut self, font: &Font) -> GraphicPlayList {
+        if self.musics.len() == 0u {
+            fail!("GraphicPlayList cannot be empty");
+        }
         for tmp in self.musics.iter() {
             self.texts.push(match rc::Text::new_init(tmp.as_slice().split_terminator('/').last().unwrap(), Rc::new(RefCell::new(font.clone())), 20) {
                 Some(t) => t,
@@ -51,6 +55,9 @@ impl GraphicPlayList {
         let tmp = self.position.clone();
         self.set_position(&tmp);
         self.set_current(0u);
+        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
+        self.cleaner.set_outline_color(&Color::new_RGB(255, 255, 255));
+        self.cleaner.set_outline_thickness(1f32);
         self
     }
 
@@ -62,12 +69,13 @@ impl GraphicPlayList {
             position: Vector2u{x: 0u32, y: 0u32},
             to_draw: 0u,
             current: 1u,
-            border: match rc::RectangleShape::new_init(&Vector2f{x: 0f32, y: 1f32}) {
+            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: 0f32, y: 1f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for GraphicPlayList")
             },
             hover_element: None,
-            add_to_view: 0i
+            add_to_view: 0i,
+            need_to_draw: true
         }.init(font)
     }
 
@@ -79,12 +87,13 @@ impl GraphicPlayList {
             position: position.clone(),
             to_draw: 0u,
             current: 1u,
-            border: match rc::RectangleShape::new_init(&Vector2f{x: 1f32, y: size.y as f32}) {
+            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for GraphicPlayList")
             },
             hover_element: None,
-            add_to_view: 0i
+            add_to_view: 0i,
+            need_to_draw: true
         }.init(font)
     }
 
@@ -94,7 +103,7 @@ impl GraphicPlayList {
 
         self.position = position.clone();
         self.to_draw = 0;
-        self.border.set_position(&Vector2f{x: position.x as f32 - 1f32, y: position.y as f32});
+        self.cleaner.set_position(&Vector2f{x: position.x as f32 + 1f32, y: position.y as f32});
         for tmp in self.texts.mut_iter() {
             tmp.set_position(&Vector2f{x: self.position.x as f32 + 4f32, y: pos as f32 + self.position.y as f32});
             if pos < limit {
@@ -102,6 +111,7 @@ impl GraphicPlayList {
             }
             pos += 22u32;
         }
+        self.need_to_draw = true;
     }
 
     pub fn set_to_add(&mut self, to_add: int) {
@@ -116,22 +126,26 @@ impl GraphicPlayList {
                 pos += 22i;
             }
             self.add_to_view = to_add;
+            self.need_to_draw = true;
         }
     }
 
     pub fn draw(&mut self, win: &mut RenderWindow) {
-        let mut it = 0i;
+        if self.need_to_draw {
+            let mut it = 0i;
 
-        for tmp in self.texts.mut_iter() {
-            if it == self.to_draw as int + self.add_to_view {
-                break;
+            win.draw(&self.cleaner);
+            for tmp in self.texts.mut_iter() {
+                if it == self.to_draw as int + self.add_to_view {
+                    break;
+                }
+                if it >= self.add_to_view as int {
+                    win.draw(tmp);
+                }
+                it += 1;
             }
-            if it >= self.add_to_view as int {
-                win.draw(tmp);
-            }
-            it += 1;
+            self.need_to_draw = false;
         }
-        win.draw(&self.border);
     }
 
     pub fn set_current(&mut self, current: uint) {
@@ -144,6 +158,7 @@ impl GraphicPlayList {
             } else {
                 self.set_to_add(0i);
             }
+            self.need_to_draw = true;
         }
     }
 
@@ -159,6 +174,10 @@ impl GraphicPlayList {
         self.texts.remove(pos);
         let tmp = self.position;
         self.set_position(&tmp);
+        if self.musics.len() == 0u || self.texts.len() == 0u {
+            fail!("GraphicPlayList cannot be empty");
+        }
+        self.need_to_draw = true;
     }
 
     pub fn is_inside(&self, pos: &Vector2u) -> bool {
@@ -171,6 +190,7 @@ impl GraphicPlayList {
             Some(s) => {
                 self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
                 self.hover_element = None;
+                self.need_to_draw = true;
             }
             None => {}
         }
@@ -179,7 +199,8 @@ impl GraphicPlayList {
     pub fn click(&mut self, y: int) -> bool {
         if y >= self.position.y as int {
             let tmp = ((y as f32 - self.position.y as f32) / 22f32 + self.add_to_view as f32) as uint;
-            
+
+            self.need_to_draw = true;
             if tmp < self.texts.len() {
                 self.hover_element = match self.hover_element {
                     Some(s) => {
@@ -202,6 +223,7 @@ impl GraphicPlayList {
         if y >= self.position.y as int {
             let tmp = ((y as f32 - self.position.y as f32) / 22f32 + self.add_to_view as f32) as uint;
 
+            self.need_to_draw = true;
             if tmp >= self.texts.len() {
                 self.hover_element = None;
                 return;

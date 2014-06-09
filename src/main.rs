@@ -54,7 +54,7 @@ fn main() {
         Err(e) => fail!("FmodSys.new : {}", e)
     };
     let mut window = match RenderWindow::new(VideoMode::new_init(800, 600, 32), 
-                                             "SFML Example", 
+                                             "Music Player", 
                                              Close, 
                                              &ContextSettings::default()) {
         Some(window) => window,

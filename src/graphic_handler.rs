@@ -96,7 +96,6 @@ impl GraphicHandler {
     }
 
     pub fn update(&mut self, win: &mut RenderWindow) {
-        win.clear(&Color::new_RGB(0, 0, 0));
         self.musics.draw(win);
         self.volume_bar.draw(win);
         self.timer.draw(win);
@@ -178,7 +177,7 @@ impl GraphicHandler {
                             self.volume_bar.set_progress(tmp + 1);
                             chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                         }
-                        keyboard::Substract => {
+                        keyboard::Subtract => {
                             let tmp = self.volume_bar.get_real_value();
                             self.volume_bar.set_progress(tmp - 1);
                             chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
@@ -228,7 +227,7 @@ impl GraphicHandler {
                 }
             }
 
-            old_position = match self.main_loop(&chan, old_position, length) {
+            let new_position = match self.main_loop(&chan, old_position, length) {
                 Some(p) => {
                     self.set_music_position(p);
                     p
@@ -247,7 +246,10 @@ impl GraphicHandler {
                 }
             };
 
-            self.update(window);
+            if old_position != new_position {
+                old_position = new_position;
+                self.update(window);
+            }
         }
     }
 }
