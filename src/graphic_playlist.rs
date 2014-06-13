@@ -121,7 +121,8 @@ impl GraphicPlayList {
         let tmp_add = to_add * 22i;
         let max = (self.texts.len() as int + 2i) * 22i;
 
-        if self.add_to_view != to_add && tmp_add >= 0i && tmp_add + self.to_draw as int * 22i < max {
+        if self.add_to_view != to_add && tmp_add >= 0i && tmp_add + self.to_draw as int * 22i < max
+            && self.texts.len() as int * 22i >= (self.cleaner.get_size().y as int - 1) {
             let mut pos = self.position.y as int - tmp_add as int;
             for tmp in self.texts.mut_iter() {
                 let x = tmp.get_position().x;
@@ -162,7 +163,7 @@ impl GraphicPlayList {
             self.current = current;
             self.need_to_draw = true;
 
-            if by_click == false {
+            if by_click == false && self.texts.len() as int * 22i >= (self.cleaner.get_size().y as int - 1) {
                 if self.current as int + 2i >= self.to_draw as int + self.add_to_view {
                     self.set_to_add(self.current as int + 2i - self.to_draw as int);
                 } else if (self.current as int) < self.add_to_view {
