@@ -32,6 +32,7 @@ use graphic_timer::GraphicTimer;
 use graphic_spectrum::GraphicSpectrum;
 use graphic_playlist::GraphicPlayList;
 use progress_bar::ProgressBar;
+use graphic_button::GraphicButton;
 
 pub struct GraphicHandler {
     font: Font,
@@ -40,7 +41,8 @@ pub struct GraphicHandler {
     music_bar: ProgressBar,
     volume_bar: ProgressBar,
     playlist: PlayList,
-    spectrum: GraphicSpectrum
+    spectrum: GraphicSpectrum,
+    button: GraphicButton
 }
 
 impl GraphicHandler {
@@ -59,15 +61,16 @@ impl GraphicHandler {
             musics: GraphicPlayList::new_init(playlist.to_vec(), &font,
                 &Vector2u{x: window.get_size().x - (window.get_size().x - 512u32), y: 0},
                 &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 35u32}),
-            timer: GraphicTimer::new(font, &Vector2u{x: window.get_size().x - 633u32, y: 24u32},
-                                        &Vector2u{x: window.get_size().x - (window.get_size().x - 634u32), y: window.get_size().y - 35u32}),
+            timer: GraphicTimer::new(&font, &Vector2u{x: window.get_size().x - 635u32, y: 23u32},
+                                        &Vector2u{x: window.get_size().x - (window.get_size().x - 635u32), y: window.get_size().y - 33u32}),
             music_bar: ProgressBar::new_init(&Vector2u{x: window.get_size().x, y: 8u32}, &Vector2u{x: 0u32, y: window.get_size().y - 8u32},
                 &Color::new_RGB(255, 255, 255), 1u),
             volume_bar: ProgressBar::new_init(&Vector2u{x: 120u32, y: 20u32},
                 &Vector2u{x: 513u32, y: window.get_size().y - 30u32},
                 &Color::new_RGB(255, 25, 25), 100u),
             playlist: playlist,
-            spectrum: GraphicSpectrum::new(window.get_size().y as uint - 9u)
+            button: GraphicButton::new_init(&font, &Vector2u{x: 512u32, y: 25u32}, &Vector2u{x: 0u32, y: 0u32}, &String::from_str("Button 1")),
+            spectrum: GraphicSpectrum::new(window.get_size().y as uint - 35u, &Vector2u{x: 0u32, y: 26u32})
         }.init()
     }
 
@@ -99,6 +102,7 @@ impl GraphicHandler {
         self.musics.draw(win);
         self.volume_bar.draw(win);
         self.timer.draw(win);
+        self.button.draw(win);
         self.spectrum.draw(win);
         self.music_bar.draw(win);
         win.display();
@@ -186,14 +190,16 @@ impl GraphicHandler {
                     },
                     event::MouseButtonReleased{button, x, y} => match button {
                         mouse::MouseLeft => {
-                            if self.music_bar.is_inside(&Vector2u{x: x as u32, y: y as u32}) {
-                                self.music_bar.click(&Vector2u{x: x as u32, y: y as u32});
+                            let v = Vector2u{x: x as u32, y: y as u32};
+
+                            if self.music_bar.is_inside(&v) {
+                                self.music_bar.clicked(&v);
                                 chan.set_position(self.music_bar.get_real_value(), FMOD_TIMEUNIT_MS);
-                            } else if self.volume_bar.is_inside(&Vector2u{x: x as u32, y: y as u32}) {
-                                self.volume_bar.click(&Vector2u{x: x as u32, y: y as u32});
+                            } else if self.volume_bar.is_inside(&v) {
+                                self.volume_bar.clicked(&v);
                                 chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
-                            } else if self.musics.is_inside(&Vector2u{x: x as u32, y: y as u32}) {
-                                if self.musics.click(y) {
+                            } else if self.musics.is_inside(&v) {
+                                if self.musics.clicked(y) {
                                     self.playlist.set_actual(self.musics.get_current());
 
                                     let tmp_s = self.playlist.get_current();
@@ -207,19 +213,27 @@ impl GraphicHandler {
                                         Err(e) => fail!("sound.play : {}", e)
                                     };
                                 }
+                            } else if self.button.is_inside(&v) {
+                                self.button.clicked(&v);
                             }
                         },
                         _ => {}
                     },
                     event::MouseWheelMoved{delta, ..} => {
                         let tmp = self.musics.get_add_to_view();
-                        self.musics.set_to_add(tmp + delta);
+                        self.musics.set_to_add(tmp - delta);
                     },
                     event::MouseMoved{x, y} => {
-                        if self.musics.is_inside(&Vector2u{x: x as u32, y: y as u32}) {
-                            self.musics.cursor_moved(y);
+                        let v = Vector2u{x: x as u32, y: y as u32};
+                        if self.musics.is_inside(&v) {
+                            self.musics.cursor_moved(&v);
                         } else {
                             self.musics.mouse_leave();
+                        }
+                        if self.button.is_inside(&v) {
+                            self.button.cursor_moved(&v);
+                        } else {
+                            self.button.mouse_leave();
                         }
                     }
                     event::NoEvent => break,

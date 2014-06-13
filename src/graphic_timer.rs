@@ -31,12 +31,11 @@ use std::cell::RefCell;
 pub struct GraphicTimer {
     timer: rc::Text,
     cleaner: rc::RectangleShape,
-    position: Vector2u,
     need_to_draw: bool
 }
 
 impl GraphicTimer {
-    pub fn new(font: Font, size: &Vector2u, position: &Vector2u) -> GraphicTimer {
+    pub fn new(font: &Font, size: &Vector2u, position: &Vector2u) -> GraphicTimer {
         GraphicTimer {
             timer: match rc::Text::new_init("", Rc::new(RefCell::new(font.clone())), 20) {
                 Some(t) => t,
@@ -46,14 +45,12 @@ impl GraphicTimer {
                 Some(l) => l,
                 None => fail!("Cannot create cleaner for GraphicTimer")
             },
-            position: position.clone(),
             need_to_draw: true
-        }.init()
+        }.init(position)
     }
 
-    fn init(mut self) -> GraphicTimer {
-        let tmp = self.position.clone();
-        self.set_position(&tmp);
+    fn init(mut self, position: &Vector2u) -> GraphicTimer {
+        self.set_position(position);
         self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
         self.cleaner.set_outline_color(&Color::new_RGB(255, 255, 255));
         self.cleaner.set_outline_thickness(1f32);
@@ -61,9 +58,11 @@ impl GraphicTimer {
     }
 
     pub fn set_position(&mut self, position: &Vector2u) {
+        let size = self.timer.get_local_bounds().width;
+
         self.cleaner.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
-        self.timer.set_position(&Vector2f{x: position.x as f32 + 5f32, y: position.y as f32 + 1f32});
-        self.position = position.clone();
+        self.timer.set_position(&Vector2f{x: (self.cleaner.get_size().x - 1f32 - size as f32) / 2f32 + self.cleaner.get_position().x,
+                                              y: (self.cleaner.get_size().y - 20f32) / 2f32 + self.cleaner.get_position().y - 2f32});
         self.need_to_draw = true;
     }
 
@@ -76,7 +75,7 @@ impl GraphicTimer {
             self.timer.set_string(st.as_slice());
             let size = self.timer.get_local_bounds().width;
             let y = self.timer.get_position().y;
-            self.timer.set_position(&Vector2f{x: (self.cleaner.get_size().x - 1f32 - size as f32) / 2f32 + self.position.x as f32,
+            self.timer.set_position(&Vector2f{x: (self.cleaner.get_size().x - 1f32 - size as f32) / 2f32 + self.cleaner.get_position().x,
                                               y: y});
         }
     }

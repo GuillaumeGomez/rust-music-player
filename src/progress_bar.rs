@@ -28,11 +28,10 @@ use rsfml::graphics::{RenderWindow, Color, RectangleShape};
 
 pub struct ProgressBar {
     line: rc::RectangleShape,
-    graphic_size: Vector2u,
     pub maximum: uint,
     value: uint,
     real_value: uint,
-    cleaner: rc::RectangleShape,
+    border: rc::RectangleShape,
     need_to_draw: bool
 }
 
@@ -40,11 +39,10 @@ impl ProgressBar {
     pub fn new(color: &Color) -> ProgressBar {
         ProgressBar {
             line: rc::RectangleShape::new().unwrap(),
-            graphic_size: Vector2u{x: 0, y: 0},
             maximum: 1,
             value: 0u,
             real_value: 0u,
-            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: 0f32, y: 1f32}) {
+            border: match rc::RectangleShape::new_init(&Vector2f{x: 0f32, y: 1f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for ProgressBar")
             },
@@ -58,11 +56,10 @@ impl ProgressBar {
                 Some(l) => l,
                 None => fail!("Cannot create progress bar")
             },
-            graphic_size: size.clone(),
             maximum: maximum,
             value: 0u,
             real_value: 0u,
-            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32}) {
+            border: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32}) {
                 Some(l) => l,
                 None => fail!("Cannot create border for ProgressBar")
             },
@@ -73,15 +70,15 @@ impl ProgressBar {
     fn init(mut self, color: &Color, position: &Vector2u) -> ProgressBar {
         self.set_position(position);
         self.line.set_fill_color(color);
-        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
-        self.cleaner.set_outline_color(&Color::new_RGB(255, 255, 255));
-        self.cleaner.set_outline_thickness(1f32);
+        self.border.set_fill_color(&Color::new_RGB(0, 0, 0));
+        self.border.set_outline_color(&Color::new_RGB(255, 255, 255));
+        self.border.set_outline_thickness(1f32);
         self
     }
 
     pub fn draw(&mut self, win: &mut RenderWindow) {
         if self.need_to_draw {
-            win.draw(&self.cleaner);
+            win.draw(&self.border);
             win.draw(&self.line);
             self.need_to_draw = false;
         }
@@ -89,15 +86,14 @@ impl ProgressBar {
 
     pub fn set_size(&mut self, size: &Vector2u) {
         self.need_to_draw = true;
-        self.graphic_size = size.clone();
-        self.cleaner.set_size(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32});
+        self.border.set_size(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32});
         self.set_progress(self.real_value);
     }
 
     pub fn set_position(&mut self, position: &Vector2u) {
         self.need_to_draw = true;
         self.line.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
-        self.cleaner.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
+        self.border.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
     }
 
     pub fn set_progress(&mut self, position: uint) {
@@ -106,25 +102,25 @@ impl ProgressBar {
         } else {
             position
         };
-        let new_value = tmp * self.graphic_size.x as uint / self.maximum;
+        let new_value = tmp * (self.border.get_size().x as uint - 1u) / self.maximum;
 
         if new_value != self.value {
             self.need_to_draw = true;
             self.value = new_value;
             self.real_value = position;
-            self.line.set_size(&Vector2f{x: self.value as f32, y: self.graphic_size.y as f32});
+            self.line.set_size(&Vector2f{x: self.value as f32, y: self.border.get_size().y as f32 - 1f32});
         }
     }
 
-    pub fn click(&mut self, pos: &Vector2u) {
-        let in_order = (pos.x as f32 - self.line.get_position().x) / self.graphic_size.x as f32 * 100f32;
+    pub fn clicked(&mut self, pos: &Vector2u) {
+        let in_order = (pos.x as f32 - self.line.get_position().x) / (self.border.get_size().x - 1f32) * 100f32;
 
         self.set_progress((in_order * self.maximum as f32 / 100f32) as uint);
     }
 
     pub fn is_inside(&self, pos: &Vector2u) -> bool {
-        pos.y >= self.line.get_position().y as u32 && pos.y <= self.line.get_position().y as u32 + self.graphic_size.y &&
-        pos.x >= self.line.get_position().x as u32 && pos.x <= self.line.get_position().x as u32 + self.graphic_size.x
+        pos.y >= self.line.get_position().y as u32 && pos.y <= self.line.get_position().y as u32 + self.border.get_size().y as u32 - 1u32 &&
+        pos.x >= self.line.get_position().x as u32 && pos.x <= self.line.get_position().x as u32 + self.border.get_size().x as u32 - 1u32
     }
 
     pub fn get_real_value(&self) -> uint {

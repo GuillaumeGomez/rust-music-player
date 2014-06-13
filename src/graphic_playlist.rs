@@ -31,14 +31,14 @@ use std::cell::RefCell;
 pub struct GraphicPlayList {
     musics: Vec<String>,
     texts: Vec<rc::Text>,
-    graphic_size: Vector2u,
     position: Vector2u,
     to_draw: uint,
     current: uint,
     hover_element: Option<uint>,
     add_to_view: int,
     cleaner: rc::RectangleShape,
-    need_to_draw: bool
+    need_to_draw: bool,
+    has_mouse: bool
 }
 
 impl GraphicPlayList {
@@ -65,7 +65,6 @@ impl GraphicPlayList {
         GraphicPlayList {
             musics: musics,
             texts: Vec::new(),
-            graphic_size: Vector2u{x: 0u32, y: 0u32},
             position: Vector2u{x: 0u32, y: 0u32},
             to_draw: 0u,
             current: 1u,
@@ -75,7 +74,8 @@ impl GraphicPlayList {
             },
             hover_element: None,
             add_to_view: 0i,
-            need_to_draw: true
+            need_to_draw: true,
+            has_mouse: false
         }.init(font)
     }
 
@@ -83,7 +83,6 @@ impl GraphicPlayList {
         GraphicPlayList {
             musics: musics,
             texts: Vec::new(),
-            graphic_size: size.clone(),
             position: position.clone(),
             to_draw: 0u,
             current: 1u,
@@ -93,13 +92,14 @@ impl GraphicPlayList {
             },
             hover_element: None,
             add_to_view: 0i,
-            need_to_draw: true
+            need_to_draw: true,
+            has_mouse: false
         }.init(font)
     }
 
     pub fn set_position(&mut self, position: &Vector2u) {
         let mut pos = position.y;
-        let limit = self.graphic_size.y + position.y;
+        let limit = self.cleaner.get_size().y as u32 - 1u32 + position.y;
 
         self.position = position.clone();
         self.to_draw = 0;
@@ -152,16 +152,23 @@ impl GraphicPlayList {
     }
 
     pub fn set_current(&mut self, current: uint) {
+        self.set_current_intern(current, false)
+    }
+
+    fn set_current_intern(&mut self, current: uint, by_click: bool) {
         if current != self.current {
             self.texts.get_mut(current).set_color(&Color::new_RGB(255, 125, 25));
             self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 255, 255));
             self.current = current;
-            if self.current + 2u >= self.to_draw {
-                self.set_to_add(self.current as int + 2i - self.to_draw as int);
-            } else {
-                self.set_to_add(0i);
-            }
             self.need_to_draw = true;
+
+            if by_click == false {
+                if self.current as int + 2i >= self.to_draw as int + self.add_to_view {
+                    self.set_to_add(self.current as int + 2i - self.to_draw as int);
+                } else if (self.current as int) < self.add_to_view {
+                    self.set_to_add(self.current as int);
+                }
+            }
         }
     }
 
@@ -184,22 +191,25 @@ impl GraphicPlayList {
     }
 
     pub fn is_inside(&self, pos: &Vector2u) -> bool {
-        pos.y >= self.position.y && pos.y <= self.position.y + self.graphic_size.y &&
-        pos.x >= self.position.x && pos.x <= self.position.x + self.graphic_size.x
+        pos.y >= self.position.y && pos.y <= self.position.y + self.cleaner.get_size().y as u32 - 1u32 &&
+        pos.x >= self.position.x && pos.x <= self.position.x + self.cleaner.get_size().x as u32 - 1u32
     }
 
     pub fn mouse_leave(&mut self) {
-        match self.hover_element {
-            Some(s) => {
-                self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
-                self.hover_element = None;
-                self.need_to_draw = true;
+        if self.has_mouse {
+            match self.hover_element {
+                Some(s) => {
+                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                    self.hover_element = None;
+                    self.need_to_draw = true;
+                }
+                None => {}
             }
-            None => {}
+            self.has_mouse = false;
         }
     }
 
-    pub fn click(&mut self, y: int) -> bool {
+    pub fn clicked(&mut self, y: int) -> bool {
         if y >= self.position.y as int {
             let tmp = ((y as f32 - self.position.y as f32) / 22f32 + self.add_to_view as f32) as uint;
 
@@ -212,7 +222,7 @@ impl GraphicPlayList {
                     }
                     None => None
                 };
-                self.set_current(tmp);
+                self.set_current_intern(tmp, true);
                 true
             } else {
                 false
@@ -222,32 +232,31 @@ impl GraphicPlayList {
         }
     }
 
-    pub fn cursor_moved(&mut self, y: int) {
-        if y >= self.position.y as int {
-            let tmp = ((y as f32 - self.position.y as f32) / 22f32 + self.add_to_view as f32) as uint;
+    pub fn cursor_moved(&mut self, position: &Vector2u) {
+        let tmp = ((position.y as f32 - self.position.y as f32) / 22f32 + self.add_to_view as f32) as uint;
 
-            self.need_to_draw = true;
-            if tmp >= self.texts.len() {
-                self.hover_element = None;
-                return;
+        self.need_to_draw = true;
+        self.has_mouse = true;
+        if tmp >= self.texts.len() {
+            self.hover_element = None;
+            return;
+        }
+        match self.hover_element {
+            Some(s) => {
+                if self.current == tmp {
+                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                    self.hover_element = None;
+                } else if s != tmp {
+                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                    self.hover_element = Some(tmp);
+                    self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
+                }
             }
-            match self.hover_element {
-                Some(s) => {
-                    if self.current == tmp {
-                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
-                        self.hover_element = None;
-                    } else if s != tmp {
-                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
-                        self.hover_element = Some(tmp);
-                        self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
-                    }
-                }
-                None => {
-                    if self.current != tmp {
-                        self.hover_element = Some(tmp);
-                        self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
-                    } 
-                }
+            None => {
+                if self.current != tmp {
+                    self.hover_element = Some(tmp);
+                    self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
+                } 
             }
         }
     }

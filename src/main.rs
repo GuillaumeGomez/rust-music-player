@@ -38,6 +38,7 @@ mod graphic_playlist;
 mod graphic_timer;
 mod progress_bar;
 mod graphic_spectrum;
+mod graphic_button;
 
 fn main() {
     let args = Vec::from_slice(os::args().tail());
