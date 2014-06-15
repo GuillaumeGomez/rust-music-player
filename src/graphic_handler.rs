@@ -33,6 +33,7 @@ use graphic_spectrum::GraphicSpectrum;
 use graphic_playlist::GraphicPlayList;
 use progress_bar::ProgressBar;
 use graphic_button::GraphicButton;
+use graphic_sound::GraphicSound;
 
 pub struct GraphicHandler {
     font: Font,
@@ -42,12 +43,15 @@ pub struct GraphicHandler {
     volume_bar: ProgressBar,
     playlist: PlayList,
     spectrum: GraphicSpectrum,
-    button: GraphicButton
+    graph_sound: GraphicSound,
+    spectrum_button: GraphicButton,
+    position_button: GraphicButton
 }
 
 impl GraphicHandler {
     fn init(mut self) -> GraphicHandler {
         self.volume_bar.set_progress(100);
+        self.spectrum_button.set_pushed(true);
         self
     }
 
@@ -59,8 +63,8 @@ impl GraphicHandler {
         GraphicHandler {
             font: font.clone(),
             musics: GraphicPlayList::new_init(playlist.to_vec(), &font,
-                &Vector2u{x: window.get_size().x - (window.get_size().x - 512u32), y: 0},
-                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 35u32}),
+                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 33u32},
+                &Vector2u{x: 513u32, y: 0}),
             timer: GraphicTimer::new(&font, &Vector2u{x: window.get_size().x - 635u32, y: 23u32},
                                         &Vector2u{x: window.get_size().x - (window.get_size().x - 635u32), y: window.get_size().y - 33u32}),
             music_bar: ProgressBar::new_init(&Vector2u{x: window.get_size().x, y: 8u32}, &Vector2u{x: 0u32, y: window.get_size().y - 8u32},
@@ -69,8 +73,16 @@ impl GraphicHandler {
                 &Vector2u{x: 513u32, y: window.get_size().y - 30u32},
                 &Color::new_RGB(255, 25, 25), 100u),
             playlist: playlist,
-            button: GraphicButton::new_init(&font, &Vector2u{x: 512u32, y: 25u32}, &Vector2u{x: 0u32, y: 0u32}, &String::from_str("Button 1")),
-            spectrum: GraphicSpectrum::new(window.get_size().y as uint - 35u, &Vector2u{x: 0u32, y: 26u32})
+            spectrum_button: GraphicButton::new_init(&font,
+                &Vector2u{x: 256u32, y: 25u32},
+                &Vector2u{x: 0u32, y: 0u32},
+                &String::from_str("Spectrum")),
+            position_button: GraphicButton::new_init(&font,
+                &Vector2u{x: 256u32, y: 25u32},
+                &Vector2u{x: 256u32, y: 0u32},
+                &String::from_str("3D position")),
+            spectrum: GraphicSpectrum::new(window.get_size().y as uint - 34u, &Vector2u{x: 0u32, y: 25u32}),
+            graph_sound: GraphicSound::new_init(&font, &Vector2u{x: 512, y: window.get_size().y as u32 - 35u32}, &Vector2u{x: 0u32, y: 26u32})
         }.init()
     }
 
@@ -89,6 +101,7 @@ impl GraphicHandler {
                 }
             }
         };
+        sound.set_3D_min_max_distance(-100f32, 100f32);
         self.musics.set_current(self.playlist.get_pos());
         self.music_bar.maximum = sound.get_length(FMOD_TIMEUNIT_MS).unwrap() as uint;
         Ok(sound)
@@ -102,8 +115,13 @@ impl GraphicHandler {
         self.musics.draw(win);
         self.volume_bar.draw(win);
         self.timer.draw(win);
-        self.button.draw(win);
-        self.spectrum.draw(win);
+        self.spectrum_button.draw(win);
+        self.position_button.draw(win);
+        if self.spectrum_button.is_pushed() {
+            self.spectrum.draw(win);
+        } else {
+            self.graph_sound.draw(win);
+        }
         self.music_bar.draw(win);
         win.display();
     }
@@ -115,7 +133,8 @@ impl GraphicHandler {
                     let position = chan.get_position(FMOD_TIMEUNIT_MS).unwrap();
 
                     if position != old_position {
-                        self.spectrum.update_spectrum(chan.get_spectrum(512u, 0i32, fmod::DSP_FFT_WindowRect).unwrap());
+                        self.spectrum.update_spectrum(chan.get_spectrum(256u, 0i32, fmod::DSP_FFT_WindowRect).unwrap(),
+                            chan.get_spectrum(256u, 1i32, fmod::DSP_FFT_WindowRect).unwrap());
                         self.timer.update_display(position, length as uint);
                         Some(position)
                     } else {
@@ -199,7 +218,7 @@ impl GraphicHandler {
                                 self.volume_bar.clicked(&v);
                                 chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                             } else if self.musics.is_inside(&v) {
-                                if self.musics.clicked(y) {
+                                if self.musics.clicked(&v) {
                                     self.playlist.set_actual(self.musics.get_current());
 
                                     let tmp_s = self.playlist.get_current();
@@ -213,8 +232,27 @@ impl GraphicHandler {
                                         Err(e) => fail!("sound.play : {}", e)
                                     };
                                 }
-                            } else if self.button.is_inside(&v) {
-                                self.button.clicked(&v);
+                            } else if self.graph_sound.is_inside(&v) {
+                                match fmod.get_3D_listener_attributes(0) {
+                                    Ok((mut pos, v1, v2, v3)) => {
+                                        self.graph_sound.clicked(&v);
+                                        pos.x = self.graph_sound.x;
+                                        pos.y = self.graph_sound.y;
+                                        match fmod.set_3D_listener_attributes(0, pos, v1, v2, v3) {
+                                            fmod::Ok => {}
+                                            e => {println!("set_3D_listener_attributes error : {}", e);}
+                                        }
+                                    },
+                                    Err(e) => println!("get_3D_listener_attributes error: {}", e)
+                                }
+                            } else if self.spectrum_button.is_inside(&v) && !self.spectrum_button.is_pushed() {
+                                self.spectrum_button.clicked(&v);
+                                self.position_button.clicked(&v);
+                                self.spectrum.need_to_draw = true;
+                            } else if self.position_button.is_inside(&v) && !self.position_button.is_pushed() {
+                                self.position_button.clicked(&v);
+                                self.spectrum_button.clicked(&v);
+                                self.graph_sound.need_to_draw = true;
                             }
                         },
                         _ => {}
@@ -230,10 +268,15 @@ impl GraphicHandler {
                         } else {
                             self.musics.mouse_leave();
                         }
-                        if self.button.is_inside(&v) {
-                            self.button.cursor_moved(&v);
+                        if self.spectrum_button.is_inside(&v) {
+                            self.spectrum_button.cursor_moved(&v);
                         } else {
-                            self.button.mouse_leave();
+                            self.spectrum_button.mouse_leave();
+                        }
+                        if self.position_button.is_inside(&v) {
+                            self.position_button.cursor_moved(&v);
+                        } else {
+                            self.position_button.mouse_leave();
                         }
                     }
                     event::NoEvent => break,

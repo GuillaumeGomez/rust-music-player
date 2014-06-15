@@ -73,23 +73,34 @@ impl GraphicSpectrum {
         self.need_to_draw = true;
     }
 
-    pub fn update_spectrum(&mut self, data: Vec<f32>) {
+    pub fn update_spectrum(&mut self, data_left: Vec<f32>, data_right: Vec<f32>) {
         if !self.to_update {
             self.to_update = true;
             return;
         }
         let mut it = 0;
+        let height = self.cleaner.get_size().y;
 
         self.need_to_draw = true;
         self.to_update = false;
-        for t_data in data.iter() {
-            let mut tmp = *t_data * -20f32;
+        for t_data in data_left.iter() {
+            let mut tmp = *t_data * -15f32;
 
             if tmp < -1f32 {
                 tmp = -1f32;
             }
-            self.spectrum.get_mut(it).set_size(&Vector2f{x: 1f32, y: self.cleaner.get_size().y as f32 * tmp});
+            self.spectrum.get_mut(it).set_size(&Vector2f{x: 1f32, y: height * tmp});
             it += 1;
+        }
+        it = 511;
+        for t_data in data_right.iter() {
+            let mut tmp = *t_data * -15f32;
+
+            if tmp < -1f32 {
+                tmp = -1f32;
+            }
+            self.spectrum.get_mut(it).set_size(&Vector2f{x: 1f32, y: height * tmp});
+            it -= 1;
         }
     }
 

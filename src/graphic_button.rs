@@ -111,12 +111,24 @@ impl GraphicButton {
 
     pub fn clicked(&mut self, position: &Vector2u) {
         if self.pushed {
-            self.pushed = false;
-            self.button.set_fill_color(&Color::new_RGB(10, 10, 10));
-            self.need_to_draw = true;
+            self.set_pushed(false)
         } else {
-            self.pushed = true;
-            self.button.set_fill_color(&Color::new_RGB(205, 187, 100));
+            self.set_pushed(true)
+        }
+    }
+
+    pub fn is_pushed(&self) -> bool {
+        self.pushed
+    }
+
+    pub fn set_pushed(&mut self, pushed: bool) {
+        if self.pushed != pushed {
+            self.pushed = pushed;
+            if self.pushed {
+                self.button.set_fill_color(&Color::new_RGB(205, 187, 100));
+            } else {
+                self.button.set_fill_color(&Color::new_RGB(10, 10, 10));
+            }
             self.need_to_draw = true;
         }
     }
