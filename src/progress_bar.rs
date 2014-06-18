@@ -87,7 +87,8 @@ impl ProgressBar {
     pub fn set_size(&mut self, size: &Vector2u) {
         self.need_to_draw = true;
         self.border.set_size(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32});
-        self.set_progress(self.real_value);
+        let tmp_real_value = self.real_value;
+        self.set_progress(tmp_real_value);
     }
 
     pub fn set_position(&mut self, position: &Vector2u) {
@@ -114,8 +115,9 @@ impl ProgressBar {
 
     pub fn clicked(&mut self, pos: &Vector2u) {
         let in_order = (pos.x as f32 - self.line.get_position().x) / (self.border.get_size().x - 1f32) * 100f32;
+        let tmp_maximum = self.maximum;
 
-        self.set_progress((in_order * self.maximum as f32 / 100f32) as uint);
+        self.set_progress((in_order * tmp_maximum as f32 / 100f32) as uint);
     }
 
     pub fn is_inside(&self, pos: &Vector2u) -> bool {

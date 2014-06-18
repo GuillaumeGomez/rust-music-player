@@ -140,12 +140,13 @@ impl GraphicPlayList {
             self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 255, 255));
             self.current = current;
             self.need_to_draw = true;
+            let tmp_to_draw = self.to_draw;
 
             if by_click == false && self.texts.len() as int * 22i >= (self.cleaner.get_size().y as int - 1) {
                 if self.current as int + 2i >= self.to_draw as int + self.add_to_view {
-                    self.set_to_add(self.current as int + 2i - self.to_draw as int);
+                    self.set_to_add(current as int + 2i - tmp_to_draw as int);
                 } else if (self.current as int) < self.add_to_view {
-                    self.set_to_add(self.current as int);
+                    self.set_to_add(current as int);
                 }
             }
         }
