@@ -21,12 +21,14 @@
 */
 
 #![allow(dead_code)]
+#![allow(unused_variable)]
 
 use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f, Vector2u};
+use rsfml::system::vector2::{Vector2f};
 use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape};
 use std::rc::Rc;
 use std::cell::RefCell;
+use graphic_element::GraphicElement;
 
 pub struct GraphicPlayList {
     musics: Vec<String>,
@@ -37,20 +39,13 @@ pub struct GraphicPlayList {
     add_to_view: int,
     cleaner: rc::RectangleShape,
     need_to_draw: bool,
-    has_mouse: bool
+    has_mouse: bool,
+    font: Font,
+    name: String
 }
 
 impl GraphicPlayList {
-    fn init(mut self, font: &Font, position: &Vector2u) -> GraphicPlayList {
-        if self.musics.len() == 0u {
-            fail!("GraphicPlayList cannot be empty");
-        }
-        for tmp in self.musics.iter() {
-            self.texts.push(match rc::Text::new_init(tmp.as_slice().split_terminator('/').last().unwrap(), Rc::new(RefCell::new(font.clone())), 20) {
-                Some(t) => t,
-                None => fail!("Cannot create Text")
-            });
-        }
+    fn init(mut self, position: &Vector2f) -> GraphicPlayList {
         self.set_position(position);
         self.set_current(0u);
         self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
@@ -59,40 +54,31 @@ impl GraphicPlayList {
         self
     }
 
-    pub fn new_init(musics: Vec<String>, font: &Font, size: &Vector2u, position: &Vector2u) -> GraphicPlayList {
-        GraphicPlayList {
-            musics: musics,
-            texts: Vec::new(),
-            to_draw: 0u,
-            current: 1u,
-            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 - 1f32, y: size.y as f32 - 1f32}) {
-                Some(l) => l,
-                None => fail!("Cannot create border for GraphicPlayList")
-            },
-            hover_element: None,
-            add_to_view: 0i,
-            need_to_draw: true,
-            has_mouse: false
-        }.init(font, position)
+    pub fn add_music(&mut self, music: &String) {
+        if !self.musics.contains(music) {
+            self.musics.push(music.clone());
+            /*let pos = if self.texts.len() > 0 {
+                    match self.texts.last() {
+                        Some(f) => f.get_position(),
+                        None => Vector2f{x: self.cleaner.get_position().x + 4f32, y: self.cleaner.get_position().y - 22f32}
+                    }
+                } else {
+                    Vector2f{x: self.cleaner.get_position().x + 4f32, y: self.cleaner.get_position().y - 22f32}
+                };*/
+            self.texts.push(match rc::Text::new_init(music.as_slice().split_terminator('/').last().unwrap(),
+                Rc::new(RefCell::new(self.font.clone())), 20) {
+                Some(t) => t,
+                None => fail!("Cannot create Text")
+            });
+            let tmp = self.cleaner.get_position();
+            self.set_position(&tmp);
+        }
     }
 
-    pub fn set_position(&mut self, position: &Vector2u) {
-        let mut pos = position.y;
-        let limit = self.cleaner.get_size().y as u32 - 1u32 + position.y;
-
-        self.to_draw = 0;
-        self.cleaner.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
-        for tmp in self.texts.mut_iter() {
-            tmp.set_position(&Vector2f{x: self.cleaner.get_position().x + 4f32, y: pos as f32 + self.cleaner.get_position().y});
-            if pos < limit {
-                self.to_draw += 1;
-            }
-            pos += 22u32;
+    pub fn add_musics(&mut self, musics: &Vec<String>) {
+        for tmp in musics.iter() {
+            self.add_music(tmp)
         }
-        if self.to_draw > 0 && self.to_draw * 22u > limit as uint + 2u {
-            self.to_draw -= 1;
-        }
-        self.need_to_draw = true;
     }
 
     pub fn set_to_add(&mut self, to_add: int) {
@@ -112,30 +98,12 @@ impl GraphicPlayList {
         }
     }
 
-    pub fn draw(&mut self, win: &mut RenderWindow) {
-        if self.need_to_draw {
-            let mut it = 0i;
-
-            win.draw(&self.cleaner);
-            for tmp in self.texts.mut_iter() {
-                if it == self.to_draw as int + self.add_to_view {
-                    break;
-                }
-                if it >= self.add_to_view as int {
-                    win.draw(tmp);
-                }
-                it += 1;
-            }
-            self.need_to_draw = false;
-        }
-    }
-
     pub fn set_current(&mut self, current: uint) {
         self.set_current_intern(current, false)
     }
 
     fn set_current_intern(&mut self, current: uint, by_click: bool) {
-        if current != self.current {
+        if self.texts.len() > 0 && current != self.current {
             self.texts.get_mut(current).set_color(&Color::new_RGB(255, 125, 25));
             self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 255, 255));
             self.current = current;
@@ -162,58 +130,88 @@ impl GraphicPlayList {
 
     pub fn remove_music(&mut self, pos: uint) {
         self.texts.remove(pos);
-        let tmp = Vector2u{x: self.cleaner.get_position().x as u32, y: self.cleaner.get_position().y as u32};
+        let tmp = Vector2f{x: self.cleaner.get_position().x, y: self.cleaner.get_position().y};
         self.set_position(&tmp);
         if self.musics.len() == 0u || self.texts.len() == 0u {
             fail!("GraphicPlayList cannot be empty");
         }
         self.need_to_draw = true;
     }
+}
 
-    pub fn is_inside(&self, pos: &Vector2u) -> bool {
-        pos.y as f32 >= self.cleaner.get_position().y && pos.y as f32 <= self.cleaner.get_position().y + self.cleaner.get_size().y &&
-        pos.x as f32 >= self.cleaner.get_position().x && pos.x as f32 <= self.cleaner.get_position().x + self.cleaner.get_size().x
+impl GraphicElement for GraphicPlayList {
+    fn new_init(size: &Vector2f, position: &Vector2f, color: &Color, font: Option<&Font>) -> GraphicPlayList {
+        GraphicPlayList {
+            musics: Vec::new(),
+            texts: Vec::new(),
+            to_draw: 0u,
+            current: 1u,
+            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x - 2f32, y: size.y - 2f32}) {
+                Some(l) => l,
+                None => fail!("Cannot create cleaner for GraphicPlayList")
+            },
+            hover_element: None,
+            add_to_view: 0i,
+            need_to_draw: true,
+            has_mouse: false,
+            font: match font {
+                Some(f) => f.clone(),
+                None => fail!("GraphicPlayList needs Font")
+            },
+            name: String::new()
+        }.init(position)
     }
 
-    pub fn mouse_leave(&mut self) {
-        if self.has_mouse {
-            match self.hover_element {
-                Some(s) => {
-                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
-                    self.hover_element = None;
-                    self.need_to_draw = true;
+    fn set_position(&mut self, position: &Vector2f) {
+        let mut pos = position.y;
+        let limit = self.cleaner.get_size().y - 1f32 + position.y;
+
+        self.to_draw = 0;
+        self.cleaner.set_position(&Vector2f{x: position.x, y: position.y});
+        if self.texts.len() > 0 {
+            for tmp in self.texts.mut_iter() {
+                tmp.set_position(&Vector2f{x: self.cleaner.get_position().x + 4f32, y: pos});
+                if pos < limit {
+                    self.to_draw += 1;
                 }
-                None => {}
+                pos += 22f32;
             }
-            self.has_mouse = false;
+            if self.to_draw > 0 && self.to_draw * 22u > limit as uint + 2u {
+                self.to_draw -= 1;
+            }
         }
+        self.need_to_draw = true;
     }
 
-    pub fn clicked(&mut self, position: &Vector2u) -> bool {
-        if position.y >= self.cleaner.get_position().y as u32 {
-            let tmp = ((position.y as f32 - self.cleaner.get_position().y as f32) / 22f32 + self.add_to_view as f32) as uint;
+    fn get_position(&self) -> Vector2f {
+        let tmp = self.cleaner.get_position();
 
-            self.need_to_draw = true;
-            if tmp < self.texts.len() {
-                self.hover_element = match self.hover_element {
-                    Some(s) => {
-                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
-                        None
-                    }
-                    None => None
-                };
-                self.set_current_intern(tmp, true);
-                true
-            } else {
-                false
-            }
-        } else {
-            false
-        }
+        Vector2f{x: tmp.x - 1f32, y: tmp.y - 1f32}
     }
 
-    pub fn cursor_moved(&mut self, position: &Vector2u) {
-        let tmp = ((position.y as f32 - self.cleaner.get_position().y as f32) / 22f32 + self.add_to_view as f32) as uint;
+    fn set_size(&mut self, size: &Vector2f) {
+        let pos = self.cleaner.get_position();
+
+        self.cleaner.set_size(&Vector2f{x: size.x - 2f32, y: size.y - 2f32});
+        self.set_position(&pos);
+    }
+
+    fn get_size(&self) -> Vector2f {
+        let tmp = self.cleaner.get_size();
+
+        Vector2f{x: tmp.x + 2f32, y: tmp.y + 2f32}
+    }
+
+    fn get_min_size(&self) -> Vector2f {
+        Vector2f{x: 50f32, y: 50f32}
+    }
+
+    fn get_max_size(&self) -> Option<Vector2f> {
+        None
+    }
+
+    fn cursor_moved(&mut self, position: &Vector2f) {
+        let tmp = ((position.y - self.cleaner.get_position().y) / 22f32 + self.add_to_view as f32) as uint;
 
         self.need_to_draw = true;
         self.has_mouse = true;
@@ -239,5 +237,70 @@ impl GraphicPlayList {
                 } 
             }
         }
+    }
+
+    fn clicked(&mut self, position: &Vector2f) {
+        if position.y >= self.cleaner.get_position().y {
+            let tmp = ((position.y - self.cleaner.get_position().y) / 22f32 + self.add_to_view as f32) as uint;
+
+            self.need_to_draw = true;
+            if tmp < self.texts.len() {
+                self.hover_element = match self.hover_element {
+                    Some(s) => {
+                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                        None
+                    }
+                    None => None
+                };
+                self.set_current_intern(tmp, true);
+            }
+        }
+    }
+
+    fn mouse_leave(&mut self) {
+        if self.has_mouse {
+            match self.hover_element {
+                Some(s) => {
+                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                    self.hover_element = None;
+                    self.need_to_draw = true;
+                }
+                None => {}
+            }
+            self.has_mouse = false;
+        }
+    }
+
+    fn is_inside(&self, pos: &Vector2f) -> bool {
+        pos.y >= self.cleaner.get_position().y && pos.y <= self.cleaner.get_position().y + self.cleaner.get_size().y &&
+        pos.x >= self.cleaner.get_position().x && pos.x <= self.cleaner.get_position().x + self.cleaner.get_size().x
+    }
+
+    fn draw(&mut self, win: &mut RenderWindow) {
+        if self.need_to_draw {
+            let mut it = 0i;
+
+            win.draw(&self.cleaner);
+            if self.texts.len() > 0 {
+                for tmp in self.texts.mut_iter() {
+                    if it == self.to_draw as int + self.add_to_view {
+                        break;
+                    }
+                    if it >= self.add_to_view as int {
+                        win.draw(tmp);
+                    }
+                    it += 1;
+                }
+            }
+            self.need_to_draw = false;
+        }
+    }
+
+    fn set_element_name(&mut self, name: &String) {
+        self.name = name.clone();
+    }
+
+    fn get_element_name<'a>(&'a self) -> &'a String {
+        &self.name
     }
 }

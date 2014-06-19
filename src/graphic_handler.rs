@@ -22,7 +22,7 @@
 
 #![allow(dead_code)]
 
-use rsfml::system::vector2::{Vector2u};
+use rsfml::system::vector2::{Vector2f};
 use rsfml::window::{event, keyboard, mouse};
 use rsfml::graphics::{RenderWindow, Color, Font};
 use rfmod::enums::*;
@@ -33,7 +33,8 @@ use graphic_spectrum::GraphicSpectrum;
 use graphic_playlist::GraphicPlayList;
 use progress_bar::ProgressBar;
 use graphic_button::GraphicButton;
-use graphic_sound::GraphicSound;
+use graphic_sound_position::GraphicSoundPosition;
+use graphic_element::GraphicElement;
 
 pub struct GraphicHandler {
     font: Font,
@@ -43,15 +44,20 @@ pub struct GraphicHandler {
     volume_bar: ProgressBar,
     playlist: PlayList,
     spectrum: GraphicSpectrum,
-    graph_sound: GraphicSound,
+    graph_sound: GraphicSoundPosition,
     spectrum_button: GraphicButton,
     position_button: GraphicButton
 }
 
 impl GraphicHandler {
     fn init(mut self) -> GraphicHandler {
+        self.music_bar.set_maximum(1u);
+        self.musics.add_musics(&self.playlist.to_vec());
+        self.volume_bar.set_maximum(100u);
         self.volume_bar.set_progress(100);
         self.spectrum_button.set_pushed(true);
+        self.spectrum_button.set_label(&String::from_str("Spectrum"));
+        self.position_button.set_label(&String::from_str("3D position"));
         self
     }
 
@@ -62,27 +68,39 @@ impl GraphicHandler {
         };
         GraphicHandler {
             font: font.clone(),
-            musics: GraphicPlayList::new_init(playlist.to_vec(), &font,
-                &Vector2u{x: window.get_size().x - 512u32, y: window.get_size().y - 33u32},
-                &Vector2u{x: 513u32, y: 0}),
-            timer: GraphicTimer::new(&font, &Vector2u{x: window.get_size().x - 635u32, y: 23u32},
-                                        &Vector2u{x: window.get_size().x - (window.get_size().x - 635u32), y: window.get_size().y - 33u32}),
-            music_bar: ProgressBar::new_init(&Vector2u{x: window.get_size().x, y: 8u32}, &Vector2u{x: 0u32, y: window.get_size().y - 8u32},
-                &Color::new_RGB(255, 255, 255), 1u),
-            volume_bar: ProgressBar::new_init(&Vector2u{x: 120u32, y: 20u32},
-                &Vector2u{x: 513u32, y: window.get_size().y - 30u32},
-                &Color::new_RGB(255, 25, 25), 100u),
+            musics: GraphicElement::new_init(&Vector2f{x: window.get_size().x as f32 - 511f32, y: window.get_size().y as f32 - 32f32},
+                &Vector2f{x: 513f32, y: 0f32},
+                &Color::black(),
+                Some(&font)),
+            timer: GraphicElement::new_init(&Vector2f{x: window.get_size().x as f32 - 633f32, y: 27f32},
+                &Vector2f{x: window.get_size().x as f32 - (window.get_size().x as f32 - 634f32), y: window.get_size().y as f32 - 34f32},
+                &Color::black(),
+                Some(&font)),
+            music_bar: GraphicElement::new_init(&Vector2f{x: window.get_size().x as f32 + 2f32, y: 8f32},
+                &Vector2f{x: -1f32, y: window.get_size().y as f32 - 8f32},
+                &Color::new_RGB(255, 255, 255),
+                None),
+            volume_bar: GraphicElement::new_init(&Vector2f{x: 120f32, y: 20f32},
+                &Vector2f{x: 512f32, y: window.get_size().y as f32 - 30f32},
+                &Color::new_RGB(255, 25, 25),
+                None),
             playlist: playlist,
-            spectrum_button: GraphicButton::new_init(&font,
-                &Vector2u{x: 256u32, y: 25u32},
-                &Vector2u{x: 0u32, y: 0u32},
-                &String::from_str("Spectrum")),
-            position_button: GraphicButton::new_init(&font,
-                &Vector2u{x: 256u32, y: 25u32},
-                &Vector2u{x: 256u32, y: 0u32},
-                &String::from_str("3D position")),
-            spectrum: GraphicSpectrum::new(window.get_size().y as uint - 34u, &Vector2u{x: 0u32, y: 25u32}),
-            graph_sound: GraphicSound::new_init(&font, &Vector2u{x: 512, y: window.get_size().y as u32 - 35u32}, &Vector2u{x: 0u32, y: 26u32})
+            spectrum_button: GraphicElement::new_init(&Vector2f{x: 256f32, y: 25f32},
+                &Vector2f{x: 0f32, y: 0f32},
+                &Color::black(),
+                Some(&font)),
+            position_button: GraphicElement::new_init(&Vector2f{x: 256f32, y: 25f32},
+                &Vector2f{x: 256f32, y: 0f32},
+                &Color::black(),
+                Some(&font)),
+            spectrum: GraphicElement::new_init(&Vector2f{x: 512f32, y: window.get_size().y as f32 - 33f32},
+                &Vector2f{x: 0f32, y: 25f32},
+                &Color::new_RGB(50, 100, 30),
+                None),
+            graph_sound: GraphicElement::new_init(&Vector2f{x: 512f32, y: window.get_size().y as f32 - 35f32},
+                &Vector2f{x: 0f32, y: 26f32},
+                &Color::black(),
+                Some(&font))
         }.init()
     }
 
@@ -160,6 +178,7 @@ impl GraphicHandler {
             Err(e) => fail!("sound.play : {}", e)
         };
         let length = self.music_bar.maximum as u32;
+        window.clear(&Color::black());
 
         while window.is_open() {
             loop {
@@ -177,6 +196,7 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
+                            chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                         }
                         keyboard::Down => {
                             tmp_s = self.playlist.get_next();
@@ -188,6 +208,7 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
+                            chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                         }
                         keyboard::Space => {
                             chan.set_paused(!chan.get_paused().unwrap());
@@ -209,7 +230,7 @@ impl GraphicHandler {
                     },
                     event::MouseButtonReleased{button, x, y} => match button {
                         mouse::MouseLeft => {
-                            let v = Vector2u{x: x as u32, y: y as u32};
+                            let v = Vector2f{x: x as f32, y: y as f32};
 
                             if self.music_bar.is_inside(&v) {
                                 self.music_bar.clicked(&v);
@@ -218,7 +239,9 @@ impl GraphicHandler {
                                 self.volume_bar.clicked(&v);
                                 chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                             } else if self.musics.is_inside(&v) {
-                                if self.musics.clicked(&v) {
+                                let old_c = self.musics.get_current();
+                                self.musics.clicked(&v);
+                                if old_c != self.musics.get_current() {
                                     self.playlist.set_actual(self.musics.get_current());
 
                                     let tmp_s = self.playlist.get_current();
@@ -231,6 +254,7 @@ impl GraphicHandler {
                                         Ok(c) => c,
                                         Err(e) => fail!("sound.play : {}", e)
                                     };
+                                    chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                                 }
                             } else if self.graph_sound.is_inside(&v) {
                                 match fmod.get_3D_listener_attributes(0) {
@@ -262,7 +286,8 @@ impl GraphicHandler {
                         self.musics.set_to_add(tmp - delta);
                     },
                     event::MouseMoved{x, y} => {
-                        let v = Vector2u{x: x as u32, y: y as u32};
+                        let v = Vector2f{x: x as f32, y: y as f32};
+
                         if self.musics.is_inside(&v) {
                             self.musics.cursor_moved(&v);
                         } else {
@@ -299,6 +324,7 @@ impl GraphicHandler {
                         Ok(c) => c,
                         Err(e) => fail!("sound.play : {}", e)
                     };
+                    chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                     100u
                 }
             };

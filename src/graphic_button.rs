@@ -21,39 +21,26 @@
 */
 
 #![allow(dead_code)]
+#![allow(unused_variable)]
 
 use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f, Vector2u};
+use rsfml::system::vector2::{Vector2f};
 use rsfml::graphics::{RenderWindow, Color, RectangleShape, Text, Font};
 use std::rc::Rc;
 use std::cell::RefCell;
+use graphic_element::GraphicElement;
 
 pub struct GraphicButton {
     label: rc::Text,
     button: rc::RectangleShape,
     need_to_draw: bool,
     pushed: bool,
-    has_mouse: bool
+    has_mouse: bool,
+    name: String
 }
 
 impl GraphicButton {
-    pub fn new_init(font: &Font, size: &Vector2u, position: &Vector2u, label: &String) -> GraphicButton {
-        GraphicButton {
-            label: match rc::Text::new_init(label.as_slice(), Rc::new(RefCell::new(font.clone())), 20) {
-                Some(t) => t,
-                None => fail!("Cannot create label for GraphicButton")
-            },
-            button: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32}) {
-                Some(l) => l,
-                None => fail!("Cannot create cleaner for GraphicButton")
-            },
-            need_to_draw: true,
-            pushed: false,
-            has_mouse: false
-        }.init(position)
-    }
-
-    fn init(mut self, position: &Vector2u) -> GraphicButton {
+    fn init(mut self, position: &Vector2f) -> GraphicButton {
         self.set_position(position);
         self.button.set_fill_color(&Color::new_RGB(10, 10, 10));
         self.button.set_outline_color(&Color::new_RGB(255, 255, 255));
@@ -61,59 +48,13 @@ impl GraphicButton {
         self
     }
 
-    pub fn draw(&mut self, win: &mut RenderWindow) {
-        if self.need_to_draw {
-            win.draw(&self.button);
-            win.draw(&self.label);
-            self.need_to_draw = false;
-        }
-    }
-
-    pub fn set_position(&mut self, position: &Vector2u) {
-        let size = self.label.get_local_bounds().width;
-
-        self.button.set_position(&Vector2f{x: position.x as f32 + 1f32, y: position.y as f32 + 1f32});
-        self.label.set_position(&Vector2f{x: (self.button.get_size().x - 1f32 - size as f32) / 2f32 + self.button.get_position().x as f32,
+    pub fn set_label(&mut self, label: &String) {
+        if label != &self.label.get_string() {
+            self.label.set_string(label.as_slice());
+            let size = self.label.get_local_bounds().width;
+            self.label.set_position(&Vector2f{x: (self.button.get_size().x - 1f32 - size as f32) / 2f32 + self.button.get_position().x as f32,
                                               y: self.button.get_position().y + (self.button.get_size().y - 20f32) / 2f32 - 2f32});
-        self.need_to_draw = true;
-    }
-
-    pub fn is_inside(&self, pos: &Vector2u) -> bool {
-        pos.y as f32 >= self.button.get_position().y && pos.y as f32 <= self.button.get_position().y + self.button.get_size().y &&
-        pos.x as f32 >= self.button.get_position().x && pos.x as f32 <= self.button.get_position().x + self.button.get_size().x
-    }
-
-    pub fn mouse_leave(&mut self) {
-        if self.has_mouse {
-            let tmp = self.button.get_size();
-            let pos = self.button.get_position();
-
-            self.button.set_outline_thickness(1f32);
-            self.button.set_size(&Vector2f{x: tmp.x + 2f32, y: tmp.y + 2f32});
-            self.button.set_position(&Vector2f{x: pos.x - 1f32, y: pos.y - 1f32});
             self.need_to_draw = true;
-            self.has_mouse = false;
-        }
-    }
-
-    pub fn cursor_moved(&mut self, position: &Vector2u) {
-        if !self.has_mouse {
-            let tmp = self.button.get_size();
-            let pos = self.button.get_position();
-
-            self.button.set_outline_thickness(2f32);
-            self.button.set_size(&Vector2f{x: tmp.x - 2f32, y: tmp.y - 2f32});
-            self.button.set_position(&Vector2f{x: pos.x + 1f32, y: pos.y + 1f32});
-            self.need_to_draw = true;
-            self.has_mouse = true;
-        }
-    }
-
-    pub fn clicked(&mut self, position: &Vector2u) {
-        if self.pushed {
-            self.set_pushed(false)
-        } else {
-            self.set_pushed(true)
         }
     }
 
@@ -131,5 +72,118 @@ impl GraphicButton {
             }
             self.need_to_draw = true;
         }
+    }
+}
+
+impl GraphicElement for GraphicButton {
+    fn new_init(size: &Vector2f, position: &Vector2f, unused: &Color, font: Option<&Font>) -> GraphicButton {
+        GraphicButton {
+            label: match rc::Text::new_init("", Rc::new(RefCell::new(match font {
+                    Some(f) => f.clone(),
+                    None => fail!("GraphicButton needs Font")
+                })), 20) {
+                Some(t) => t,
+                None => fail!("Cannot create label for GraphicButton")
+            },
+            button: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32}) {
+                Some(l) => l,
+                None => fail!("Cannot create cleaner for GraphicButton")
+            },
+            need_to_draw: true,
+            pushed: false,
+            has_mouse: false,
+            name: String::new()
+        }.init(position)
+    }
+
+    fn cursor_moved(&mut self, position: &Vector2f) {
+        if !self.has_mouse {
+            let tmp = self.button.get_size();
+            let pos = self.button.get_position();
+
+            self.button.set_outline_thickness(2f32);
+            self.button.set_size(&Vector2f{x: tmp.x - 2f32, y: tmp.y - 2f32});
+            self.button.set_position(&Vector2f{x: pos.x + 1f32, y: pos.y + 1f32});
+            self.need_to_draw = true;
+            self.has_mouse = true;
+        }
+    }
+
+    fn clicked(&mut self, position: &Vector2f) {
+        if self.pushed {
+            self.set_pushed(false)
+        } else {
+            self.set_pushed(true)
+        }
+    }
+
+    fn draw(&mut self, win: &mut RenderWindow) {
+        if self.need_to_draw {
+            win.draw(&self.button);
+            win.draw(&self.label);
+            self.need_to_draw = false;
+        }
+    }
+
+    fn set_position(&mut self, position: &Vector2f) {
+        let size = self.label.get_local_bounds().width;
+
+        self.button.set_position(&Vector2f{x: position.x + 1f32, y: position.y + 1f32});
+        self.label.set_position(&Vector2f{x: (self.button.get_size().x - 1f32 - size as f32) / 2f32 + self.button.get_position().x,
+                                              y: self.button.get_position().y + (self.button.get_size().y - 20f32) / 2f32 - 2f32});
+        self.need_to_draw = true;
+    }
+
+    fn get_position(&self) -> Vector2f {
+        let tmp = self.button.get_position();
+
+        Vector2f{x: tmp.x - 1f32, y: tmp.y - 1f32}
+    }
+
+    fn set_size(&mut self, size: &Vector2f) {
+        let tmp = self.button.get_position();
+
+        self.button.set_size(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32});
+        self.set_position(&tmp);
+    }
+
+    fn get_size(&self) -> Vector2f {
+        let tmp = self.button.get_size();
+
+        Vector2f{x: tmp.x + 2f32, y: tmp.y + 2f32}
+    }
+
+    fn get_min_size(&self) -> Vector2f {
+        Vector2f{x: 100f32, y: 40f32}
+    }
+
+    fn get_max_size(&self) -> Option<Vector2f> {
+        None
+    }
+
+    fn is_inside(&self, pos: &Vector2f) -> bool {
+        pos.y >= self.button.get_position().y && pos.y <= self.button.get_position().y + self.button.get_size().y &&
+        pos.x >= self.button.get_position().x && pos.x <= self.button.get_position().x + self.button.get_size().x
+    }
+
+    fn mouse_leave(&mut self) {
+        if self.has_mouse {
+            let tmp = self.button.get_size();
+            let pos = self.button.get_position();
+
+            self.button.set_outline_thickness(1f32);
+            self.button.set_size(&Vector2f{x: tmp.x + 2f32, y: tmp.y + 2f32});
+            self.button.set_position(&Vector2f{x: pos.x - 1f32, y: pos.y - 1f32});
+            self.need_to_draw = true;
+            self.has_mouse = false;
+        }
+    }
+
+    fn set_element_name(&mut self, name: &String) {
+        self.name = name.clone();
+    }
+
+    fn get_element_name<'a>(&'a self) -> &'a String {
+        &self.name
     }
 }

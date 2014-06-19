@@ -21,56 +21,36 @@
 */
 
 #![allow(dead_code)]
+#![allow(unused_variable)]
 
 use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f, Vector2u};
-use rsfml::graphics::{RenderWindow, Color, RectangleShape};
+use rsfml::system::vector2::{Vector2f};
+use rsfml::graphics::{RenderWindow, Color, RectangleShape, Font};
+use graphic_element::GraphicElement;
 
 pub struct GraphicSpectrum {
     spectrum: Vec<rc::RectangleShape>,
     cleaner: rc::RectangleShape,
     to_update: bool,
-    pub need_to_draw: bool
+    pub need_to_draw: bool,
+    name: String
 }
 
 impl GraphicSpectrum {
-    fn init(mut self, position: &Vector2u) -> GraphicSpectrum {
+    fn init(mut self, position: &Vector2f, color: &Color) -> GraphicSpectrum {
         let mut it = 0;
 
         while it < 512 {
-            self.spectrum.push(match rc::RectangleShape::new_init(&Vector2f{x: 1f32, y: self.cleaner.get_size().y as f32}) {
+            self.spectrum.push(match rc::RectangleShape::new_init(&Vector2f{x: 1f32, y: self.cleaner.get_size().y}) {
                 Some(l) => l,
                 None => fail!("Cannot create spectrum")
             });
-            self.spectrum.get_mut(it).set_fill_color(&Color::new_RGB(50, 100, 30));
+            self.spectrum.get_mut(it).set_fill_color(color);
             it += 1;
         }
         self.set_position(position);
         self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
         self
-    }
-
-    pub fn new(height: uint, position: &Vector2u) -> GraphicSpectrum {
-        GraphicSpectrum {
-            spectrum: Vec::new(),
-            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: 512f32, y: height as f32}) {
-                Some(l) => l,
-                None => fail!("Cannot create cleaner for GraphicSpectrum")
-            },
-            to_update: true,
-            need_to_draw: true
-        }.init(position)
-    }
-
-    pub fn set_position(&mut self, position: &Vector2u) {
-        let mut it = 0;
-
-        for tmp in self.spectrum.mut_iter() {
-            tmp.set_position(&Vector2f{x: it as f32 + position.x as f32, y: self.cleaner.get_size().y as f32 + position.y as f32});
-            it += 1;
-        }
-        self.cleaner.set_position(&Vector2f{x: position.x as f32, y: position.y as f32});
-        self.need_to_draw = true;
     }
 
     pub fn update_spectrum(&mut self, data_left: Vec<f32>, data_right: Vec<f32>) {
@@ -103,8 +83,47 @@ impl GraphicSpectrum {
             it -= 1;
         }
     }
+}
 
-    pub fn draw(&mut self, win: &mut RenderWindow) {
+impl GraphicElement for GraphicSpectrum {
+    fn new_init(size: &Vector2f, position: &Vector2f, color: &Color, additionnal: Option<&Font>) -> GraphicSpectrum {
+        GraphicSpectrum {
+            spectrum: Vec::new(),
+            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: 512f32, y: size.y}) {
+                Some(l) => l,
+                None => fail!("Cannot create cleaner for GraphicSpectrum")
+            },
+            to_update: true,
+            need_to_draw: true,
+            name: String::new()
+        }.init(position, color)
+    }
+
+    fn set_position(&mut self, position: &Vector2f) {
+        let mut it = 0;
+
+        for tmp in self.spectrum.mut_iter() {
+            tmp.set_position(&Vector2f{x: it as f32 + position.x, y: self.cleaner.get_size().y + position.y});
+            it += 1;
+        }
+        self.cleaner.set_position(&Vector2f{x: position.x, y: position.y});
+        self.need_to_draw = true;
+    }
+
+    fn get_position(&self) -> Vector2f {
+        self.cleaner.get_position()
+    }
+
+    fn set_size(&mut self, size: &Vector2f) {
+        self.cleaner.set_size(&Vector2f{x: 512f32, y: size.y});
+        self.need_to_draw = true;
+    }
+
+    fn get_size(&self) -> Vector2f {
+        self.cleaner.get_size()
+    }
+
+    fn draw(&mut self, win: &mut RenderWindow) {
         if self.need_to_draw {
             win.draw(&self.cleaner);
             for tmp in self.spectrum.mut_iter() {
@@ -114,8 +133,33 @@ impl GraphicSpectrum {
         }
     }
 
-    pub fn is_inside(&self, pos: &Vector2u) -> bool {
-        pos.y as f32 >= self.cleaner.get_position().y && pos.y as f32 <= self.cleaner.get_position().y + self.cleaner.get_size().y &&
-        pos.x as f32 >= self.cleaner.get_position().x && pos.x as f32 <= self.cleaner.get_position().x + self.cleaner.get_size().x
+    fn is_inside(&self, pos: &Vector2f) -> bool {
+        pos.y >= self.cleaner.get_position().y && pos.y <= self.cleaner.get_position().y + self.cleaner.get_size().y &&
+        pos.x >= self.cleaner.get_position().x && pos.x <= self.cleaner.get_position().x + self.cleaner.get_size().x
+    }
+
+    fn get_min_size(&self) -> Vector2f {
+        Vector2f{x: 20f32, y: 20f32}
+    }
+
+    fn get_max_size(&self) -> Option<Vector2f> {
+        Some(Vector2f{x: 512f32, y: 100000000f32})
+    }
+
+    fn set_element_name(&mut self, name: &String) {
+        self.name = name.clone();
+    }
+
+    fn get_element_name<'a>(&'a self) -> &'a String {
+        &self.name
+    }
+    
+    fn cursor_moved(&mut self, position: &Vector2f) {
+    }
+
+    fn clicked(&mut self, position: &Vector2f) {
+    }
+
+    fn mouse_leave(&mut self) {
     }
 }
