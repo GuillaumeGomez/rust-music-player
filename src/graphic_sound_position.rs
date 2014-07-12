@@ -41,7 +41,8 @@ pub struct GraphicSoundPosition {
     name: String,
     pub need_to_draw: bool,
     pub x: f32,
-    pub y: f32
+    pub y: f32,
+    pub limit: f32
 }
 
 impl GraphicSoundPosition {
@@ -73,8 +74,10 @@ impl GraphicSoundPosition {
         let tmp_y = self.y;
         let tmp_size = self.cleaner.get_size();
         let tmp_pos = self.cleaner.get_position();
-        self.set_cross_pos(&Vector2f{x: (tmp_x + 100f32) * tmp_size.x / 200f32 + tmp_pos.x,
-            y: (tmp_y + 100f32) * tmp_size.y / 200f32 + tmp_pos.y});
+        let tmp_limit = self.limit;
+
+        self.set_cross_pos(&Vector2f{x: (tmp_x + tmp_limit) * tmp_size.x / (tmp_limit * 2f32) + tmp_pos.x,
+            y: (tmp_y + tmp_limit) * tmp_size.y / (tmp_limit * 2f32) + tmp_pos.y});
     }
 }
 
@@ -120,7 +123,8 @@ impl GraphicElement for GraphicSoundPosition {
             name: String::new(),
             need_to_draw: true,
             x: 0f32,
-            y: 0f32
+            y: 0f32,
+            limit: 30f32
         }.init(position)
     }
 
@@ -136,8 +140,8 @@ impl GraphicElement for GraphicSoundPosition {
 
         if res.sqrt() <= self.circle.get_radius() {
             let radius = self.circle.get_radius() as f32;
-            self.x = tmp_x * 100f32 / -radius;
-            self.y = tmp_y * 100f32 / radius;
+            self.x = tmp_x * self.limit / -radius;
+            self.y = tmp_y * self.limit / radius;
             self.set_cross_pos(&Vector2f{x: position.x, y: position.y});
             self.text_x.set_string(format!("x: {}", self.x).as_slice());
             self.text_y.set_string(format!("y: {}", self.y).as_slice());

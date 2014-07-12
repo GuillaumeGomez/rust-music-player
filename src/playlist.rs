@@ -39,11 +39,25 @@ impl PlayList {
         }
     }
 
+    fn init(mut self) -> PlayList {
+        let mut tmp = Vec::new();
+
+        for it in self.musics.iter() {
+            let fd = Path::new(it.as_slice());
+
+            if fd.is_file() {
+                tmp.push(it.clone());
+            }
+        }
+        self.musics = tmp.clone();
+        self
+    }
+
     pub fn from_vec(vec: &Vec<String>) -> PlayList {
         PlayList {
             musics: vec.clone(),
             actual: 0u
-        }
+        }.init()
     }
 
     pub fn set_actual(&mut self, actual: uint) {

@@ -53,7 +53,7 @@ impl GraphicSpectrum {
         self
     }
 
-    pub fn update_spectrum(&mut self, data_left: Vec<f32>, data_right: Vec<f32>) {
+    pub fn update_spectrum(&mut self, data_left: &Vec<f32>, data_right: &Vec<f32>) {
         if !self.to_update {
             self.to_update = true;
             return;
@@ -100,7 +100,7 @@ impl GraphicElement for GraphicSpectrum {
     }
 
     fn set_position(&mut self, position: &Vector2f) {
-        let mut it = 0;
+        let mut it = 0u;
 
         for tmp in self.spectrum.mut_iter() {
             tmp.set_position(&Vector2f{x: it as f32 + position.x, y: self.cleaner.get_size().y + position.y});

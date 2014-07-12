@@ -83,7 +83,7 @@ impl GraphicPlayList {
 
     pub fn set_to_add(&mut self, to_add: int) {
         let tmp_add = to_add * 22i;
-        let max = (self.texts.len() as int + 2i) * 22i;
+        let max = (self.texts.len() as int + 1i) * 22i;
 
         if self.add_to_view != to_add && tmp_add >= 0i && tmp_add + self.to_draw as int * 22i < max
             && self.texts.len() as int * 22i >= (self.cleaner.get_size().y as int - 1) {
@@ -104,8 +104,10 @@ impl GraphicPlayList {
 
     fn set_current_intern(&mut self, current: uint, by_click: bool) {
         if self.texts.len() > 0 && current != self.current {
+            if self.current < self.texts.len() {
+                self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 255, 255));
+            }
             self.texts.get_mut(current).set_color(&Color::new_RGB(255, 125, 25));
-            self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 255, 255));
             self.current = current;
             self.need_to_draw = true;
             let tmp_to_draw = self.to_draw;
