@@ -16,17 +16,33 @@ Then create a `lib` folder where you put the above compiled libraries files to c
 
 ###How to
 
-Here is the list of the binded keyboards keys:
+Here is the list of the binded keyboards keys :
  * ESC : exit the program
- * UP / DOWN : change the music
- * add / substract : change the music volume
+ * Up / Down : change the music
+ * Add / Subtract : change the music volume
  * Space : pause / unpause current music
+ * BackSpace : reset user position (in 3D)
+ * Delete : remove the current music
 
 You can also interact with the software like this :
  * you can scroll the playlist
  * you can click on a music to play it
  * you can click on the music progress bar to go to precise position
  * you can click on the volume progress bar to change the music's volume
+ * you can click to change your 3D position
+
+ You can have all of these instructions when you launch the player with the "-h" option or the "--help" option :
+
+ ```Shell
+ music_player -h
+ music_player --help
+ ```
+
+ To just start the music player :
+
+ ```Shell
+ music_player music1 music2
+ ```
 
 
 ##License

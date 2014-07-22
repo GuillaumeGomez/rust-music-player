@@ -28,6 +28,8 @@ extern crate rfmod;
 use rsfml::window::{ContextSettings, VideoMode, Close};
 use rsfml::graphics::{RenderWindow};
 use rfmod::*;
+use rfmod::enums::*;
+use rfmod::types::*;
 use playlist::PlayList;
 use graphic_handler::GraphicHandler;
 use std::os;
@@ -46,12 +48,31 @@ fn main() {
     let args = Vec::from_slice(os::args().tail());
 
     if args.len() < 1 {
-        fail!("USAGE: ./music_player [music_file1 music_file2 ...]");
+        println!("USAGE: music_player [music_files ...]");
+        println!("For more information: music_player -h");
+        println!("Or more information: music_player --help");
+        return;
+    } else if args.len() == 1 && (args[0].as_slice() == "-h" || args[0].as_slice() == "--help") {
+        println!("usage: music_player [music_files ...]");
+        println!("Here is the list of the binded keyboards keys:");
+        println!("* ESC : exit the program");
+        println!("* Up / Down : change the music");
+        println!("* Add / Subtract : change the music volume");
+        println!("* Space : pause / unpause current music");
+        println!("* BackSpace : reset user position (in 3D)");
+        println!("* Delete : remove the current music\n");
+        println!("You can also interact with the software like this :");
+        println!("* you can scroll the playlist");
+        println!("* you can click on a music to play it");
+        println!("* you can click on the music progress bar to go to precise position");
+        println!("* you can click on the volume progress bar to change the music's volume");
+        println!("* you can click to change your 3D position");
+        return;
     }
 
     let fmod = match FmodSys::new() {
         Ok(f) => {
-            f.init();
+            f.init_with_parameters(10i32, FmodInitFlag(FMOD_INIT_NORMAL));
             f
         },
         Err(e) => fail!("FmodSys.new : {}", e)
@@ -68,5 +89,5 @@ fn main() {
     let mut graph = GraphicHandler::new(&window, PlayList::from_vec(&args));
     window.set_vertical_sync_enabled(true);
     window.set_framerate_limit(30u);
-    graph.start(&mut window, &fmod, 1000f32 / 30f32);
+    graph.start(&mut window, &fmod);
 }

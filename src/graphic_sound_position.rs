@@ -79,6 +79,17 @@ impl GraphicSoundPosition {
         self.set_cross_pos(&Vector2f{x: (tmp_x + tmp_limit) * tmp_size.x / (tmp_limit * 2f32) + tmp_pos.x,
             y: (tmp_y + tmp_limit) * tmp_size.y / (tmp_limit * 2f32) + tmp_pos.y});
     }
+
+    pub fn reset_cross_pos(&mut self) {
+        self.x = 0f32;
+        self.y = 0f32;
+        let pos = self.cleaner.get_position();
+        let size = self.cleaner.get_size();
+
+        self.set_cross_pos(&Vector2f{x: pos.x + size.x / 2f32, y: pos.y + size.y / 2f32});
+        self.text_x.set_string(format!("x: {}", self.x).as_slice());
+        self.text_y.set_string(format!("y: {}", self.y).as_slice());
+    }
 }
 
 impl GraphicElement for GraphicSoundPosition {
@@ -171,8 +182,8 @@ impl GraphicElement for GraphicSoundPosition {
         self.cleaner.set_position(&Vector2f{x: position.x, y: position.y});
         self.center.set_position(&Vector2f{x: position.x + (self.cleaner.get_size().x - center_radius * 2f32) / 2f32,
             y: position.y + (self.cleaner.get_size().y - center_radius * 2f32) / 2f32});
-        self.text_x.set_position(&Vector2f{x: position.x, y: position.y});
-        self.text_y.set_position(&Vector2f{x: position.x, y: position.y + 21f32});
+        self.text_x.set_position(&Vector2f{x: position.x + 1f32, y: position.y});
+        self.text_y.set_position(&Vector2f{x: position.x + 1f32, y: position.y + 21f32});
         self.convert_cross_pos();
         self.need_to_draw = true;
     }

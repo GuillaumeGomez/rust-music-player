@@ -36,6 +36,7 @@ use progress_bar::ProgressBar;
 use graphic_button::GraphicButton;
 use graphic_sound_position::GraphicSoundPosition;
 use graphic_element::GraphicElement;
+use std::default::Default;
 
 pub struct GraphicHandler {
     font: Font,
@@ -108,9 +109,14 @@ impl GraphicHandler {
     pub fn set_music(&mut self, fmod: &FmodSys, name: String) -> Result<Sound, String> {
         match fmod.create_sound(name.as_slice(), Some(FmodMode(FMOD_SOFTWARE | FMOD_3D)), None) {
             Ok(s) => {
-                s.set_3D_min_max_distance(4f32, 10000f32);
+                s.set_3D_min_max_distance(5f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
                 self.music_bar.maximum = s.get_length(FMOD_TIMEUNIT_MS).unwrap() as uint;
+                if self.playlist.get_nb_musics() > 1 {
+                    s.set_mode(FmodMode(FMOD_LOOP_OFF));
+                } else {
+                    s.set_mode(FmodMode(FMOD_LOOP_NORMAL));
+                }
                 Ok(s)
             }
             Err(err) => {
@@ -147,6 +153,11 @@ impl GraphicHandler {
         win.display();
     }
 
+    fn set_chan_params(&mut self, chan: &Channel) {
+        chan.set_3D_attributes(&FmodVector{x: 0f32, y: 0f32, z: 0f32}, &Default::default());
+        chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
+    }
+
     fn main_loop(&mut self, chan: &Channel, old_position: uint, length: u32) -> Option<uint> {
         match chan.is_playing() {
             Ok(b) => {
@@ -175,7 +186,7 @@ impl GraphicHandler {
         }
     }
 
-    pub fn start(&mut self, window: &mut RenderWindow, fmod: &FmodSys, update_time: f32) {
+    pub fn start(&mut self, window: &mut RenderWindow, fmod: &FmodSys) {
         let mut old_position = 100u;
         let mut tmp_s = self.playlist.get_current();
         let mut sound = match self.set_music(fmod, tmp_s) {
@@ -186,17 +197,17 @@ impl GraphicHandler {
             Ok(c) => c,
             Err(e) => fail!("sound.play : {}", e)
         };
+        self.set_chan_params(&chan);
         let forward = FmodVector {
             x: 0f32,
             y: 0f32,
-            z: 0f32
+            z: 1f32
         };
         let up = FmodVector {
             x: 0f32,
             y: 1f32,
             z: 0f32
         };
-        let length = self.music_bar.maximum as u32;
         let mut listener_pos = FmodVector::new();
         let mut last_pos = FmodVector::new();
 
@@ -218,7 +229,7 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
-                            chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
+                            self.set_chan_params(&chan);
                         }
                         keyboard::Down => {
                             tmp_s = self.playlist.get_next();
@@ -230,7 +241,7 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
-                            chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
+                            self.set_chan_params(&chan);
                         }
                         keyboard::Space => {
                             chan.set_paused(!chan.get_paused().unwrap());
@@ -247,7 +258,12 @@ impl GraphicHandler {
                                 Ok(c) => c,
                                 Err(e) => fail!("sound.play : {}", e)
                             };
-                            chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
+                            self.set_chan_params(&chan);
+                        }
+                        keyboard::BackSpace => {
+                            self.graph_sound.reset_cross_pos();
+                            listener_pos.x = self.graph_sound.x;
+                            listener_pos.z = self.graph_sound.y;
                         }
                         _ => {}
                     },
@@ -290,10 +306,12 @@ impl GraphicHandler {
                                         Ok(c) => c,
                                         Err(e) => fail!("sound.play : {}", e)
                                     };
-                                    chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
+                                    self.set_chan_params(&chan);
                                 }
                             } else if self.graph_sound.is_inside(&v) {
                                 self.graph_sound.clicked(&v);
+                                listener_pos.x = self.graph_sound.x;
+                                listener_pos.z = self.graph_sound.y;
                             } else if self.spectrum_button.is_inside(&v) && !self.spectrum_button.is_pushed() {
                                 self.spectrum_button.clicked(&v);
                                 self.position_button.clicked(&v);
@@ -334,7 +352,8 @@ impl GraphicHandler {
                 }
             }
 
-            let new_position = match self.main_loop(&chan, old_position, length) {
+            let length = self.music_bar.maximum as u32;
+            old_position = match self.main_loop(&chan, old_position, length) {
                 Some(p) => {
                     self.set_music_position(p);
                     p
@@ -349,38 +368,21 @@ impl GraphicHandler {
                         Ok(c) => c,
                         Err(e) => fail!("sound.play : {}", e)
                     };
-                    chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
+                    self.set_chan_params(&chan);
                     100u
                 }
             };
-
-            listener_pos.x = self.graph_sound.x;
-            //listener_pos.y = self.graph_sound.y;
-
-            let mut vel = FmodVector::new();
-            vel.x = (listener_pos.x - last_pos.x) * update_time;
-            vel.y = (listener_pos.y - last_pos.y) * update_time;
-            vel.z = (listener_pos.z - last_pos.z) * update_time;
-
+            fmod.set_3D_listener_attributes(0,
+                &listener_pos,
+                &FmodVector{
+                    x: (listener_pos.x - last_pos.x) * 30f32,
+                    y: (listener_pos.y - last_pos.y) * 30f32,
+                    z: (listener_pos.z - last_pos.z) * 30f32},
+                    &forward,
+                    &up);
             last_pos = listener_pos;
-            match fmod.set_3D_listener_attributes(0, &listener_pos, &vel, &forward, &up) {
-                fmod::Ok => {}
-                e => {println!("set_3D_listener_attributes error : {}", e);}
-            };
-
-            if old_position != new_position {
-                old_position = new_position;
-                self.update(window);
-            }
-
-            unsafe {
-                let mut t1 = format!("|.......................<1>......................<2>....................|");
-                let t = t1.as_mut_vec();
-                let le = t.len();
-                *t.get_mut((listener_pos.x as uint + 30u) * le / 60u) = 'L' as u8;
-                print!("{}\r", String::from_utf8(t.clone()).unwrap());
-            }
-            //println!("{}", listener_pos.x);
+            fmod.update();
+            self.update(window);
         }
     }
 }
