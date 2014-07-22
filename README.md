@@ -12,6 +12,8 @@ rfmod: https://github.com/GuillaumeGomez/rust-fmod
 
 rsfml: https://github.com/jeremyletang/rust-sfml
 
+Then create a `lib` folder where you put the above compiled libraries files to compile with `make` command.
+
 ###How to
 
 Here is the list of the binded keyboards keys:
