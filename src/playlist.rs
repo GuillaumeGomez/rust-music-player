@@ -81,7 +81,7 @@ impl PlayList {
             self.actual + 1
         };
 
-        self.musics.get(self.actual).clone()
+        self.musics[self.actual].clone()
     }
 
     pub fn get_prev(&mut self) -> String {
@@ -95,7 +95,7 @@ impl PlayList {
             self.actual - 1
         };
 
-        self.musics.get(self.actual).clone()
+        self.musics[self.actual].clone()
     }
 
     pub fn add_music(&mut self, music: String) {
@@ -111,7 +111,7 @@ impl PlayList {
     }
 
     pub fn start(&self) -> String {
-        self.musics.get(0).clone()
+        self.musics[0].clone()
     }
 
     pub fn remove_current(&mut self) {
@@ -126,7 +126,7 @@ impl PlayList {
     }
 
     pub fn get_current(&self) -> String {
-        self.musics.get(self.actual).clone()
+        self.musics[self.actual].clone()
     }
 
     pub fn get_nb_musics(&self) -> uint {

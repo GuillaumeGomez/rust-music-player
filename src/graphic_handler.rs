@@ -106,7 +106,7 @@ impl GraphicHandler {
     }
 
     pub fn set_music(&mut self, fmod: &FmodSys, name: String) -> Result<Sound, String> {
-        match fmod.create_sound(name.clone(), Some(FmodMode(FMOD_SOFTWARE | FMOD_3D)), None) {
+        match fmod.create_sound(name.as_slice(), Some(FmodMode(FMOD_SOFTWARE | FMOD_3D)), None) {
             Ok(s) => {
                 s.set_3D_min_max_distance(4f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
@@ -154,12 +154,12 @@ impl GraphicHandler {
                     let position = chan.get_position(FMOD_TIMEUNIT_MS).unwrap();
 
                     if position != old_position {
-                        match chan.get_spectrum(256u, 1i32, fmod::DSP_FFT_WindowRect) {
+                        match chan.get_spectrum(256u, Some(1i32), Some(fmod::DSP_FFT_WindowRect)) {
                             Ok(f) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(256u, 0i32, fmod::DSP_FFT_WindowRect).unwrap(), &f);
+                                self.spectrum.update_spectrum(&chan.get_spectrum(256u, Some(0i32), Some(fmod::DSP_FFT_WindowRect)).unwrap(), &f);
                             }
                             Err(_) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(512u, 0i32, fmod::DSP_FFT_WindowRect).unwrap(), &Vec::new());
+                                self.spectrum.update_spectrum(&chan.get_spectrum(512u, Some(0i32), Some(fmod::DSP_FFT_WindowRect)).unwrap(), &Vec::new());
                             }
                         };
                         self.timer.update_display(position, length as uint);
@@ -363,7 +363,7 @@ impl GraphicHandler {
             vel.z = (listener_pos.z - last_pos.z) * update_time;
 
             last_pos = listener_pos;
-            match fmod.set_3D_listener_attributes(0, listener_pos, vel, forward, up) {
+            match fmod.set_3D_listener_attributes(0, &listener_pos, &vel, &forward, &up) {
                 fmod::Ok => {}
                 e => {println!("set_3D_listener_attributes error : {}", e);}
             };
@@ -375,7 +375,7 @@ impl GraphicHandler {
 
             unsafe {
                 let mut t1 = format!("|.......................<1>......................<2>....................|");
-                let mut t = t1.as_mut_vec();
+                let t = t1.as_mut_vec();
                 let le = t.len();
                 *t.get_mut((listener_pos.x as uint + 30u) * le / 60u) = 'L' as u8;
                 print!("{}\r", String::from_utf8(t.clone()).unwrap());
