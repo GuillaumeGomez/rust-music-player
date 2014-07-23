@@ -124,13 +124,11 @@ impl GraphicElement for GraphicSpectrum {
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
-        if self.need_to_draw {
-            win.draw(&self.cleaner);
-            for tmp in self.spectrum.mut_iter() {
-                win.draw(tmp);
-            }
-            self.need_to_draw = false;
+        win.draw(&self.cleaner);
+        for tmp in self.spectrum.mut_iter() {
+            win.draw(tmp);
         }
+        self.need_to_draw = false;
     }
 
     fn is_inside(&self, pos: &Vector2f) -> bool {
@@ -153,7 +151,7 @@ impl GraphicElement for GraphicSpectrum {
     fn get_element_name<'a>(&'a self) -> &'a String {
         &self.name
     }
-    
+
     fn cursor_moved(&mut self, position: &Vector2f) {
     }
 

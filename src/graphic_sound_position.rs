@@ -160,16 +160,14 @@ impl GraphicElement for GraphicSoundPosition {
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
-        if self.need_to_draw {
-            win.draw(&self.cleaner);
-            win.draw(&self.circle);
-            win.draw(&self.text_x);
-            win.draw(&self.text_y);
-            win.draw(&self.center);
-            win.draw(&self.cross1);
-            win.draw(&self.cross2);
-            self.need_to_draw = false;
-        }
+        win.draw(&self.cleaner);
+        win.draw(&self.circle);
+        win.draw(&self.text_x);
+        win.draw(&self.text_y);
+        win.draw(&self.center);
+        win.draw(&self.cross1);
+        win.draw(&self.cross2);
+        self.need_to_draw = false;
     }
 
     fn set_position(&mut self, position: &Vector2f) {
