@@ -6,6 +6,15 @@ install:
   - wget http://www.fmod.org/download/fmodex/api/Linux/fmodapi44439linux.tar.gz
   - tar xvf fmodapi44439linux.tar.gz
   - sudo cp -r fmodapi44439linux/api/lib/* /usr/local/lib/.
+  - wget http://www.sfml-dev.org/download/sfml/2.1/SFML-2.1-linux-gcc-64bits.tar.bz2
+  - tar xf SFML-2.1-linux-gcc-64bits.tar.bz2
+  - sudo cp -r SFML-2.1/lib/* /usr/local/lib/.
+  - wget http://www.sfml-dev.org/download/csfml/CSFML-2.1-linux-gcc-64bits.tar.bz2
+  - tar xf CSFML-2.1-linux-gcc-64bits.tar.bz2
+  - sudo cp -r CSFML-2.1/lib/* /usr/local/lib/.
+  - sudo apt-get install libpthread-stubs0-dev libgl1-mesa-dev libx11-dev
+  - sudo apt-get install libxrandr-dev libfreetype6-dev libglew1.5-dev
+  - sudo apt-get install libjpeg8-dev libgpgme11-dev libsndfile1-dev libopenal-dev libjpeg62
 script:
   - rustc --version
   - cargo build
