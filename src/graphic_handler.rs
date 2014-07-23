@@ -139,6 +139,7 @@ impl GraphicHandler {
     }
 
     pub fn update(&mut self, win: &mut RenderWindow) {
+        win.clear(&Color::black());
         self.musics.draw(win);
         self.volume_bar.draw(win);
         self.timer.draw(win);
@@ -326,7 +327,7 @@ impl GraphicHandler {
                     },
                     event::MouseWheelMoved{delta, ..} => {
                         let tmp = self.musics.get_add_to_view();
-                        self.musics.set_to_add(tmp - delta);
+                        self.musics.set_to_add(tmp - delta as int);
                     },
                     event::MouseMoved{x, y} => {
                         let v = Vector2f{x: x as f32, y: y as f32};

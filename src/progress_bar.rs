@@ -107,11 +107,9 @@ impl GraphicElement for ProgressBar {
     }
 
     fn draw(&mut self, window: &mut RenderWindow) {
-        if self.need_to_draw {
-            window.draw(&self.cleaner);
-            window.draw(&self.line);
-            self.need_to_draw = false;
-        }
+        window.draw(&self.cleaner);
+        window.draw(&self.line);
+        self.need_to_draw = false;
     }
 
     fn get_size(&self) -> Vector2f {

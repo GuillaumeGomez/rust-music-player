@@ -236,7 +236,7 @@ impl GraphicElement for GraphicPlayList {
                 if self.current != tmp {
                     self.hover_element = Some(tmp);
                     self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
-                } 
+                }
             }
         }
     }
@@ -279,23 +279,21 @@ impl GraphicElement for GraphicPlayList {
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
-        if self.need_to_draw {
-            let mut it = 0i;
+        let mut it = 0i;
 
-            win.draw(&self.cleaner);
-            if self.texts.len() > 0 {
-                for tmp in self.texts.mut_iter() {
-                    if it == self.to_draw as int + self.add_to_view {
-                        break;
-                    }
-                    if it >= self.add_to_view as int {
-                        win.draw(tmp);
-                    }
-                    it += 1;
+        win.draw(&self.cleaner);
+        if self.texts.len() > 0 {
+            for tmp in self.texts.mut_iter() {
+                if it == self.to_draw as int + self.add_to_view {
+                    break;
                 }
+                if it >= self.add_to_view as int {
+                    win.draw(tmp);
+                }
+                it += 1;
             }
-            self.need_to_draw = false;
         }
+        self.need_to_draw = false;
     }
 
     fn set_element_name(&mut self, name: &String) {

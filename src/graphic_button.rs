@@ -118,11 +118,9 @@ impl GraphicElement for GraphicButton {
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
-        if self.need_to_draw {
-            win.draw(&self.button);
-            win.draw(&self.label);
-            self.need_to_draw = false;
-        }
+        win.draw(&self.button);
+        win.draw(&self.label);
+        self.need_to_draw = false;
     }
 
     fn set_position(&mut self, position: &Vector2f) {
