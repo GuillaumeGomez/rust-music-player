@@ -1,6 +1,6 @@
 env:
   global:
-  	- LD_LIBRARY_PATH=/usr/local/lib
+    - LD_LIBRARY_PATH=/usr/local/lib
 install:
   - curl http://www.rust-lang.org/rustup.sh | sudo sh -
   - wget http://www.fmod.org/download/fmodex/api/Linux/fmodapi44439linux.tar.gz
