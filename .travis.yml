@@ -1,0 +1,10 @@
+env:
+  global:
+    - LD_LIBRARY_PATH=/usr/local/lib
+install:
+  - curl http://www.rust-lang.org/rustup.sh | sudo sh -
+script:
+  - rustc --version
+  - cargo build
+after_script:
+  - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh
