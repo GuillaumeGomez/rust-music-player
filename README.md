@@ -6,6 +6,8 @@ A little music player in rust with rsfml and rfmod.
 
 ##Installation
 
+####With Makefile
+
 You must install on your computer the rfmod and the rsfml bindings before compiling this project.
 
 rfmod: https://github.com/GuillaumeGomez/rust-fmod
@@ -13,6 +15,14 @@ rfmod: https://github.com/GuillaumeGomez/rust-fmod
 rsfml: https://github.com/jeremyletang/rust-sfml
 
 Then create a `lib` folder where you put the above compiled libraries files to compile with `make` command.
+
+####With Cargo
+
+Just use :
+
+```Shell
+cargo build
+```
 
 ###How to
 
