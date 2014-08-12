@@ -109,11 +109,11 @@ impl GraphicElement for GraphicTimer {
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
-        if self.need_to_draw {
+        //if self.need_to_draw {
             win.draw(&self.cleaner);
             win.draw(&self.timer);
             self.need_to_draw = false;
-        }
+        //}
     }
 
     fn get_min_size(&self) -> Vector2f {
