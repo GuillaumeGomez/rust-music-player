@@ -24,7 +24,7 @@ Just use :
 cargo build
 ```
 
-###How to
+##How to
 
 Here is the list of the binded keyboards keys :
  * ESC : exit the program
