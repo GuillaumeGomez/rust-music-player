@@ -1,7 +1,7 @@
 rust-music-player [![Build Status](https://api.travis-ci.org/GuillaumeGomez/rust-music-player.png?branch=master)](https://travis-ci.org/GuillaumeGomez/rust-music-player)
 =================
 
-A little music player in rust with rsfml and rfmod.
+A little music player in rust with [__rsfml__](https://github.com/jeremyletang/rust-sfml) and [__rfmod__](https://github.com/GuillaumeGomez/rust-fmod).
 
 
 ##Installation
