@@ -25,7 +25,7 @@
 
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape};
+use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape, RenderTarget};
 use std::rc::Rc;
 use std::cell::RefCell;
 use graphic_element::GraphicElement;

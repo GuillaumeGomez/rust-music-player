@@ -25,7 +25,7 @@
 
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, RectangleShape, Font};
+use rsfml::graphics::{RenderWindow, Color, RectangleShape, Font, RenderTarget};
 use graphic_element::GraphicElement;
 
 pub struct GraphicSpectrum {

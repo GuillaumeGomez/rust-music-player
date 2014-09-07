@@ -24,7 +24,7 @@
 
 use rsfml::system::vector2::{Vector2f};
 use rsfml::window::{event, keyboard, mouse};
-use rsfml::graphics::{RenderWindow, Color, Font};
+use rsfml::graphics::{RenderWindow, Color, Font, RenderTarget};
 use rfmod::enums::*;
 use rfmod::*;
 use rfmod::types::*;
