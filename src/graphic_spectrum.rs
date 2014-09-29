@@ -102,7 +102,7 @@ impl GraphicElement for GraphicSpectrum {
     fn set_position(&mut self, position: &Vector2f) {
         let mut it = 0u;
 
-        for tmp in self.spectrum.mut_iter() {
+        for tmp in self.spectrum.iter_mut() {
             tmp.set_position(&Vector2f{x: it as f32 + position.x, y: self.cleaner.get_size().y + position.y});
             it += 1;
         }
@@ -125,7 +125,7 @@ impl GraphicElement for GraphicSpectrum {
 
     fn draw(&mut self, win: &mut RenderWindow) {
         win.draw(&self.cleaner);
-        for tmp in self.spectrum.mut_iter() {
+        for tmp in self.spectrum.iter_mut() {
             win.draw(tmp);
         }
         self.need_to_draw = false;

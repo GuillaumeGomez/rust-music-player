@@ -45,7 +45,7 @@ mod graphic_sound_position;
 mod graphic_element;
 
 fn main() {
-    let args = Vec::from_slice(os::args().tail());
+    let args = os::args().tail().to_vec();
 
     if args.len() < 1 {
         println!("USAGE: music_player [music_files ...]");

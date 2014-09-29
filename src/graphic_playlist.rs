@@ -88,7 +88,7 @@ impl GraphicPlayList {
         if self.add_to_view != to_add && tmp_add >= 0i && tmp_add + self.to_draw as int * 22i < max
             && self.texts.len() as int * 22i >= (self.cleaner.get_size().y as int - 1) {
             let mut pos = self.cleaner.get_position().y as int - tmp_add as int;
-            for tmp in self.texts.mut_iter() {
+            for tmp in self.texts.iter_mut() {
                 let x = tmp.get_position().x;
                 tmp.set_position(&Vector2f{x: x as f32, y: pos as f32});
                 pos += 22i;
@@ -171,7 +171,7 @@ impl GraphicElement for GraphicPlayList {
         self.to_draw = 0;
         self.cleaner.set_position(&Vector2f{x: position.x, y: position.y});
         if self.texts.len() > 0 {
-            for tmp in self.texts.mut_iter() {
+            for tmp in self.texts.iter_mut() {
                 tmp.set_position(&Vector2f{x: self.cleaner.get_position().x + 4f32, y: pos});
                 if pos < limit {
                     self.to_draw += 1;
@@ -283,7 +283,7 @@ impl GraphicElement for GraphicPlayList {
 
         win.draw(&self.cleaner);
         if self.texts.len() > 0 {
-            for tmp in self.texts.mut_iter() {
+            for tmp in self.texts.iter_mut() {
                 if it == self.to_draw as int + self.add_to_view {
                     break;
                 }
