@@ -28,7 +28,6 @@ extern crate rfmod;
 use rsfml::window::{ContextSettings, VideoMode, Close};
 use rsfml::graphics::{RenderWindow};
 use rfmod::*;
-use rfmod::enums::*;
 use rfmod::types::*;
 use playlist::PlayList;
 use graphic_handler::GraphicHandler;
@@ -72,7 +71,7 @@ fn main() {
 
     let fmod = match FmodSys::new() {
         Ok(f) => {
-            f.init_with_parameters(10i32, FmodInitFlag(FMOD_INIT_NORMAL));
+            f.init_with_parameters(10i32, FmodInitFlag(enums::FMOD_INIT_NORMAL));
             f
         },
         Err(e) => fail!("FmodSys.new : {}", e)

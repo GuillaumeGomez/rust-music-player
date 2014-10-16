@@ -25,7 +25,6 @@
 use rsfml::system::vector2::{Vector2f};
 use rsfml::window::{event, keyboard, mouse};
 use rsfml::graphics::{RenderWindow, Color, Font, RenderTarget};
-use rfmod::enums::*;
 use rfmod::*;
 use rfmod::types::*;
 use playlist::PlayList;
@@ -107,15 +106,15 @@ impl GraphicHandler {
     }
 
     pub fn set_music(&mut self, fmod: &FmodSys, name: String) -> Result<Sound, String> {
-        match fmod.create_sound(name.as_slice(), Some(FmodMode(FMOD_SOFTWARE | FMOD_3D)), None) {
+        match fmod.create_sound(name.as_slice(), Some(FmodMode(enums::FMOD_SOFTWARE | enums::FMOD_3D)), None) {
             Ok(s) => {
                 s.set_3D_min_max_distance(5f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
-                self.music_bar.maximum = s.get_length(FMOD_TIMEUNIT_MS).unwrap() as uint;
+                self.music_bar.maximum = s.get_length(enums::FMOD_TIMEUNIT_MS).unwrap() as uint;
                 if self.playlist.get_nb_musics() > 1 {
-                    s.set_mode(FmodMode(FMOD_LOOP_OFF));
+                    s.set_mode(FmodMode(enums::FMOD_LOOP_OFF));
                 } else {
-                    s.set_mode(FmodMode(FMOD_LOOP_NORMAL));
+                    s.set_mode(FmodMode(enums::FMOD_LOOP_NORMAL));
                 }
                 Ok(s)
             }
@@ -163,15 +162,15 @@ impl GraphicHandler {
         match chan.is_playing() {
             Ok(b) => {
                 if b == true {
-                    let position = chan.get_position(FMOD_TIMEUNIT_MS).unwrap();
+                    let position = chan.get_position(enums::FMOD_TIMEUNIT_MS).unwrap();
 
                     if position != old_position {
-                        match chan.get_spectrum(256u, Some(1i32), Some(fmod::DSP_FFT_WindowRect)) {
+                        match chan.get_spectrum(256u, Some(1i32), Some(enums::DSP_FFT_WindowRect)) {
                             Ok(f) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(256u, Some(0i32), Some(fmod::DSP_FFT_WindowRect)).unwrap(), &f);
+                                self.spectrum.update_spectrum(&chan.get_spectrum(256u, Some(0i32), Some(enums::DSP_FFT_WindowRect)).unwrap(), &f);
                             }
                             Err(_) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(512u, Some(0i32), Some(fmod::DSP_FFT_WindowRect)).unwrap(), &Vec::new());
+                                self.spectrum.update_spectrum(&chan.get_spectrum(512u, Some(0i32), Some(enums::DSP_FFT_WindowRect)).unwrap(), &Vec::new());
                             }
                         };
                         self.timer.update_display(position, length as uint);
@@ -287,7 +286,7 @@ impl GraphicHandler {
 
                             if self.music_bar.is_inside(&v) {
                                 self.music_bar.clicked(&v);
-                                chan.set_position(self.music_bar.get_real_value(), FMOD_TIMEUNIT_MS);
+                                chan.set_position(self.music_bar.get_real_value(), enums::FMOD_TIMEUNIT_MS);
                             } else if self.volume_bar.is_inside(&v) {
                                 self.volume_bar.clicked(&v);
                                 chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
