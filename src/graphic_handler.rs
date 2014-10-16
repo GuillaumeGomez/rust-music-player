@@ -308,7 +308,7 @@ impl GraphicHandler {
                                     };
                                     self.set_chan_params(&chan);
                                 }
-                            } else if self.graph_sound.is_inside(&v) {
+                            } else if !self.spectrum_button.is_pushed() && self.graph_sound.is_inside(&v) {
                                 self.graph_sound.clicked(&v);
                                 listener_pos.x = self.graph_sound.x;
                                 listener_pos.z = self.graph_sound.y;
