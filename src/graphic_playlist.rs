@@ -21,7 +21,7 @@
 */
 
 #![allow(dead_code)]
-#![allow(unused_variable)]
+#![allow(unused_variables)]
 
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f};
@@ -68,7 +68,7 @@ impl GraphicPlayList {
             self.texts.push(match rc::Text::new_init(music.as_slice().split_terminator('/').last().unwrap(),
                 Rc::new(RefCell::new(self.font.clone())), 20) {
                 Some(t) => t,
-                None => fail!("Cannot create Text")
+                None => panic!("Cannot create Text")
             });
             let tmp = self.cleaner.get_position();
             self.set_position(&tmp);
@@ -105,9 +105,9 @@ impl GraphicPlayList {
     fn set_current_intern(&mut self, current: uint, by_click: bool) {
         if self.texts.len() > 0 && current != self.current {
             if self.current < self.texts.len() {
-                self.texts.get_mut(self.current).set_color(&Color::new_RGB(255, 255, 255));
+                self.texts[self.current].set_color(&Color::new_RGB(255, 255, 255));
             }
-            self.texts.get_mut(current).set_color(&Color::new_RGB(255, 125, 25));
+            self.texts[current].set_color(&Color::new_RGB(255, 125, 25));
             self.current = current;
             self.need_to_draw = true;
             let tmp_to_draw = self.to_draw;
@@ -135,7 +135,7 @@ impl GraphicPlayList {
         let tmp = Vector2f{x: self.cleaner.get_position().x, y: self.cleaner.get_position().y};
         self.set_position(&tmp);
         if self.musics.len() == 0u || self.texts.len() == 0u {
-            fail!("GraphicPlayList cannot be empty");
+            panic!("GraphicPlayList cannot be empty");
         }
         self.need_to_draw = true;
     }
@@ -150,7 +150,7 @@ impl GraphicElement for GraphicPlayList {
             current: 1u,
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x - 2f32, y: size.y - 2f32}) {
                 Some(l) => l,
-                None => fail!("Cannot create cleaner for GraphicPlayList")
+                None => panic!("Cannot create cleaner for GraphicPlayList")
             },
             hover_element: None,
             add_to_view: 0i,
@@ -158,7 +158,7 @@ impl GraphicElement for GraphicPlayList {
             has_mouse: false,
             font: match font {
                 Some(f) => f.clone(),
-                None => fail!("GraphicPlayList needs Font")
+                None => panic!("GraphicPlayList needs Font")
             },
             name: String::new()
         }.init(position)
@@ -224,18 +224,18 @@ impl GraphicElement for GraphicPlayList {
         match self.hover_element {
             Some(s) => {
                 if self.current == tmp {
-                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                    self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
                     self.hover_element = None;
                 } else if s != tmp {
-                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                    self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
                     self.hover_element = Some(tmp);
-                    self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
+                    self.texts[tmp].set_color(&Color::new_RGB(255, 175, 100));
                 }
             }
             None => {
                 if self.current != tmp {
                     self.hover_element = Some(tmp);
-                    self.texts.get_mut(tmp).set_color(&Color::new_RGB(255, 175, 100));
+                    self.texts[tmp].set_color(&Color::new_RGB(255, 175, 100));
                 }
             }
         }
@@ -249,7 +249,7 @@ impl GraphicElement for GraphicPlayList {
             if tmp < self.texts.len() {
                 self.hover_element = match self.hover_element {
                     Some(s) => {
-                        self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                        self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
                         None
                     }
                     None => None
@@ -263,7 +263,7 @@ impl GraphicElement for GraphicPlayList {
         if self.has_mouse {
             match self.hover_element {
                 Some(s) => {
-                    self.texts.get_mut(s).set_color(&Color::new_RGB(255, 255, 255));
+                    self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
                     self.hover_element = None;
                     self.need_to_draw = true;
                 }

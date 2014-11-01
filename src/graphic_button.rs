@@ -21,7 +21,7 @@
 */
 
 #![allow(dead_code)]
-#![allow(unused_variable)]
+#![allow(unused_variables)]
 
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f};
@@ -80,14 +80,14 @@ impl GraphicElement for GraphicButton {
         GraphicButton {
             label: match rc::Text::new_init("", Rc::new(RefCell::new(match font {
                     Some(f) => f.clone(),
-                    None => fail!("GraphicButton needs Font")
+                    None => panic!("GraphicButton needs Font")
                 })), 20) {
                 Some(t) => t,
-                None => fail!("Cannot create label for GraphicButton")
+                None => panic!("Cannot create label for GraphicButton")
             },
             button: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32}) {
                 Some(l) => l,
-                None => fail!("Cannot create cleaner for GraphicButton")
+                None => panic!("Cannot create cleaner for GraphicButton")
             },
             need_to_draw: true,
             pushed: false,

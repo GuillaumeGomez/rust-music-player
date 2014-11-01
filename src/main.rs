@@ -74,14 +74,14 @@ fn main() {
             f.init_with_parameters(10i32, FmodInitFlag(enums::FMOD_INIT_NORMAL));
             f
         },
-        Err(e) => fail!("FmodSys.new : {}", e)
+        Err(e) => panic!("FmodSys.new : {}", e)
     };
     let mut window = match RenderWindow::new(VideoMode::new_init(800, 600, 32), 
                                              "Music Player", 
                                              Close, 
                                              &ContextSettings::default()) {
         Some(window) => window,
-        None => fail!("Cannot create a new Render Window.")
+        None => panic!("Cannot create a new Render Window.")
     };
 
     

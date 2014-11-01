@@ -21,7 +21,7 @@
 */
 
 #![allow(dead_code)]
-#![allow(unused_variable)]
+#![allow(unused_variables)]
 
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f};
@@ -66,14 +66,14 @@ impl GraphicElement for GraphicTimer {
         GraphicTimer {
             timer: match rc::Text::new_init("", Rc::new(RefCell::new(match font {
                     Some(f) => f.clone(),
-                    None => fail!("GraphicTimer needs Font")
+                    None => panic!("GraphicTimer needs Font")
                 })), 20) {
                 Some(t) => t,
-                None => fail!("Cannot create GraphicTimer")
+                None => panic!("Cannot create GraphicTimer")
             },
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32}) {
                 Some(l) => l,
-                None => fail!("Cannot create cleaner for GraphicTimer")
+                None => panic!("Cannot create cleaner for GraphicTimer")
             },
             need_to_draw: true,
             name: String::new()

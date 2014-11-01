@@ -21,7 +21,7 @@
 */
 
 #![allow(dead_code)]
-#![allow(unused_variable)]
+#![allow(unused_variables)]
 
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f};
@@ -43,9 +43,9 @@ impl GraphicSpectrum {
         while it < 512 {
             self.spectrum.push(match rc::RectangleShape::new_init(&Vector2f{x: 1f32, y: self.cleaner.get_size().y}) {
                 Some(l) => l,
-                None => fail!("Cannot create spectrum")
+                None => panic!("Cannot create spectrum")
             });
-            self.spectrum.get_mut(it).set_fill_color(color);
+            self.spectrum[it].set_fill_color(color);
             it += 1;
         }
         self.set_position(position);
@@ -69,7 +69,7 @@ impl GraphicSpectrum {
             if tmp < -1f32 {
                 tmp = -1f32;
             }
-            self.spectrum.get_mut(it).set_size(&Vector2f{x: 1f32, y: height * tmp});
+            self.spectrum[it].set_size(&Vector2f{x: 1f32, y: height * tmp});
             it += 1;
         }
         it = 511;
@@ -79,7 +79,7 @@ impl GraphicSpectrum {
             if tmp < -1f32 {
                 tmp = -1f32;
             }
-            self.spectrum.get_mut(it).set_size(&Vector2f{x: 1f32, y: height * tmp});
+            self.spectrum[it].set_size(&Vector2f{x: 1f32, y: height * tmp});
             it -= 1;
         }
     }
@@ -91,7 +91,7 @@ impl GraphicElement for GraphicSpectrum {
             spectrum: Vec::new(),
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: 512f32, y: size.y}) {
                 Some(l) => l,
-                None => fail!("Cannot create cleaner for GraphicSpectrum")
+                None => panic!("Cannot create cleaner for GraphicSpectrum")
             },
             to_update: true,
             need_to_draw: true,

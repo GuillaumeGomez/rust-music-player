@@ -65,7 +65,7 @@ impl GraphicHandler {
     pub fn new(window: &RenderWindow, playlist: PlayList) -> GraphicHandler {
         let font = match Font::new_from_file("./font/arial.ttf") {
             Some(s) => s,
-            None => fail!("Cannot create Font")
+            None => panic!("Cannot create Font")
         };
         GraphicHandler {
             font: font.clone(),
@@ -182,7 +182,7 @@ impl GraphicHandler {
                     None
                 }
             }
-            Err(e) => fail!("fmod error : {}", e)
+            Err(e) => panic!("fmod error : {}", e)
         }
     }
 
@@ -191,11 +191,11 @@ impl GraphicHandler {
         let mut tmp_s = self.playlist.get_current();
         let mut sound = match self.set_music(fmod, tmp_s) {
             Ok(s) => s,
-            Err(e) => fail!("Error : {}", e)
+            Err(e) => panic!("Error : {}", e)
         };
         let mut chan = match sound.play() {
             Ok(c) => c,
-            Err(e) => fail!("sound.play : {}", e)
+            Err(e) => panic!("sound.play : {}", e)
         };
         self.set_chan_params(&chan);
         let forward = FmodVector {
@@ -223,11 +223,11 @@ impl GraphicHandler {
                             tmp_s = self.playlist.get_prev();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
-                                Err(e) => fail!("Error : {}", e)
+                                Err(e) => panic!("Error : {}", e)
                             };
                             chan = match sound.play() {
                                 Ok(c) => c,
-                                Err(e) => fail!("sound.play : {}", e)
+                                Err(e) => panic!("sound.play : {}", e)
                             };
                             self.set_chan_params(&chan);
                         }
@@ -235,11 +235,11 @@ impl GraphicHandler {
                             tmp_s = self.playlist.get_next();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
-                                Err(e) => fail!("Error : {}", e)
+                                Err(e) => panic!("Error : {}", e)
                             };
                             chan = match sound.play() {
                                 Ok(c) => c,
-                                Err(e) => fail!("sound.play : {}", e)
+                                Err(e) => panic!("sound.play : {}", e)
                             };
                             self.set_chan_params(&chan);
                         }
@@ -252,11 +252,11 @@ impl GraphicHandler {
                             tmp_s = self.playlist.get_current();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
-                                Err(e) => fail!("Error : {}", e)
+                                Err(e) => panic!("Error : {}", e)
                             };
                             chan = match sound.play() {
                                 Ok(c) => c,
-                                Err(e) => fail!("sound.play : {}", e)
+                                Err(e) => panic!("sound.play : {}", e)
                             };
                             self.set_chan_params(&chan);
                         }
@@ -300,11 +300,11 @@ impl GraphicHandler {
 
                                     sound = match self.set_music(fmod, tmp_s) {
                                         Ok(s) => s,
-                                        Err(e) => fail!("Error : {}", e)
+                                        Err(e) => panic!("Error : {}", e)
                                     };
                                     chan = match sound.play() {
                                         Ok(c) => c,
-                                        Err(e) => fail!("sound.play : {}", e)
+                                        Err(e) => panic!("sound.play : {}", e)
                                     };
                                     self.set_chan_params(&chan);
                                 }
@@ -362,11 +362,11 @@ impl GraphicHandler {
                     tmp_s = self.playlist.get_next();
                     sound = match self.set_music(fmod, tmp_s) {
                         Ok(s) => s,
-                        Err(e) => fail!("Error : {}", e)
+                        Err(e) => panic!("Error : {}", e)
                     };
                     chan = match sound.play() {
                         Ok(c) => c,
-                        Err(e) => fail!("sound.play : {}", e)
+                        Err(e) => panic!("sound.play : {}", e)
                     };
                     self.set_chan_params(&chan);
                     100u

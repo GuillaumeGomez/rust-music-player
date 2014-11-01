@@ -21,7 +21,7 @@
 */
 
 #![allow(dead_code)]
-#![allow(unused_variable)]
+#![allow(unused_variables)]
 
 use rsfml::graphics::rc;
 use rsfml::system::vector2::{Vector2f};
@@ -96,7 +96,7 @@ impl GraphicElement for GraphicSoundPosition {
     fn new_init(size: &Vector2f, position: &Vector2f, unused: &Color, additionnal: Option<&Font>) -> GraphicSoundPosition {
         let font = match additionnal {
             Some(f) => f,
-            None => fail!("Need font paramater for ProgressBar")
+            None => panic!("Need font paramater for ProgressBar")
         };
         GraphicSoundPosition {
             circle: match rc::CircleShape::new_init(if size.x > size.y {
@@ -105,31 +105,31 @@ impl GraphicElement for GraphicSoundPosition {
                 size.x as f32 / 2f32 - 2f32
             }, 50u) {
                 Some(t) => t,
-                None => fail!("Cannot create circle for GraphicSoundPosition")
+                None => panic!("Cannot create circle for GraphicSoundPosition")
             },
             center: match rc::CircleShape::new_init(6f32, 15u) {
                 Some(t) => t,
-                None => fail!("Cannot create center for GraphicSoundPosition")
+                None => panic!("Cannot create center for GraphicSoundPosition")
             },
             cross1: match rc::RectangleShape::new_init(&Vector2f{x: 2f32, y: 13f32}) {
                 Some(l) => l,
-                None => fail!("Cannot create cross for GraphicSoundPosition")
+                None => panic!("Cannot create cross for GraphicSoundPosition")
             },
             cross2: match rc::RectangleShape::new_init(&Vector2f{x: 2f32, y: 13f32}) {
                 Some(l) => l,
-                None => fail!("Cannot create cross for GraphicSoundPosition")
+                None => panic!("Cannot create cross for GraphicSoundPosition")
             },
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x, y: size.y}) {
                 Some(l) => l,
-                None => fail!("Cannot create cleaner for GraphicSoundPosition")
+                None => panic!("Cannot create cleaner for GraphicSoundPosition")
             },
             text_x: match rc::Text::new_init("x: 0", Rc::new(RefCell::new(font.clone())), 20) {
                 Some(t) => t,
-                None => fail!("Cannot create Text")
+                None => panic!("Cannot create Text")
             },
             text_y: match rc::Text::new_init("y: 0", Rc::new(RefCell::new(font.clone())), 20) {
                 Some(t) => t,
-                None => fail!("Cannot create Text")
+                None => panic!("Cannot create Text")
             },
             name: String::new(),
             need_to_draw: true,
