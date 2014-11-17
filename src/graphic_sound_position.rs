@@ -29,6 +29,7 @@ use rsfml::graphics::{RenderWindow, Color, RectangleShape, CircleShape, Font, Re
 use std::rc::Rc;
 use std::cell::RefCell;
 use graphic_element::GraphicElement;
+use std::num::Float;
 
 pub struct GraphicSoundPosition {
     circle: rc::CircleShape,
