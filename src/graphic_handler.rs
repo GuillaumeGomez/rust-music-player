@@ -25,8 +25,7 @@
 use rsfml::system::vector2::{Vector2f};
 use rsfml::window::{event, keyboard, mouse};
 use rsfml::graphics::{RenderWindow, Color, Font, RenderTarget};
-use rfmod::*;
-use rfmod::types::*;
+use rfmod;
 use playlist::PlayList;
 use graphic_timer::GraphicTimer;
 use graphic_spectrum::GraphicSpectrum;
@@ -105,16 +104,16 @@ impl GraphicHandler {
         }.init()
     }
 
-    pub fn set_music(&mut self, fmod: &FmodSys, name: String) -> Result<Sound, String> {
-        match fmod.create_sound(name.as_slice(), Some(FmodMode(enums::FMOD_SOFTWARE | enums::FMOD_3D)), None) {
+    pub fn set_music(&mut self, fmod: &rfmod::FmodSys, name: String) -> Result<rfmod::Sound, String> {
+        match fmod.create_sound(name.as_slice(), Some(rfmod::FmodMode(rfmod::FMOD_SOFTWARE | rfmod::FMOD_3D)), None) {
             Ok(s) => {
                 s.set_3D_min_max_distance(5f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
-                self.music_bar.maximum = s.get_length(enums::FMOD_TIMEUNIT_MS).unwrap() as uint;
+                self.music_bar.maximum = s.get_length(rfmod::FMOD_TIMEUNIT_MS).unwrap() as uint;
                 if self.playlist.get_nb_musics() > 1 {
-                    s.set_mode(FmodMode(enums::FMOD_LOOP_OFF));
+                    s.set_mode(rfmod::FmodMode(rfmod::FMOD_LOOP_OFF));
                 } else {
-                    s.set_mode(FmodMode(enums::FMOD_LOOP_NORMAL));
+                    s.set_mode(rfmod::FmodMode(rfmod::FMOD_LOOP_NORMAL));
                 }
                 Ok(s)
             }
@@ -153,24 +152,24 @@ impl GraphicHandler {
         win.display();
     }
 
-    fn set_chan_params(&mut self, chan: &Channel) {
-        chan.set_3D_attributes(&FmodVector{x: 0f32, y: 0f32, z: 0f32}, &Default::default());
+    fn set_chan_params(&mut self, chan: &rfmod::Channel) {
+        chan.set_3D_attributes(&rfmod::FmodVector{x: 0f32, y: 0f32, z: 0f32}, &Default::default());
         chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
     }
 
-    fn main_loop(&mut self, chan: &Channel, old_position: uint, length: u32) -> Option<uint> {
+    fn main_loop(&mut self, chan: &rfmod::Channel, old_position: uint, length: u32) -> Option<uint> {
         match chan.is_playing() {
             Ok(b) => {
                 if b == true {
-                    let position = chan.get_position(enums::FMOD_TIMEUNIT_MS).unwrap();
+                    let position = chan.get_position(rfmod::FMOD_TIMEUNIT_MS).unwrap();
 
                     if position != old_position {
-                        match chan.get_spectrum(256u, Some(1i32), Some(enums::DSP_FFT_WindowRect)) {
+                        match chan.get_spectrum(256u, Some(1i32), Some(rfmod::DspFftWindow::Rect)) {
                             Ok(f) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(256u, Some(0i32), Some(enums::DSP_FFT_WindowRect)).unwrap(), &f);
+                                self.spectrum.update_spectrum(&chan.get_spectrum(256u, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &f);
                             }
                             Err(_) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(512u, Some(0i32), Some(enums::DSP_FFT_WindowRect)).unwrap(), &Vec::new());
+                                self.spectrum.update_spectrum(&chan.get_spectrum(512u, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &Vec::new());
                             }
                         };
                         self.timer.update_display(position, length as uint);
@@ -186,7 +185,7 @@ impl GraphicHandler {
         }
     }
 
-    pub fn start(&mut self, window: &mut RenderWindow, fmod: &FmodSys) {
+    pub fn start(&mut self, window: &mut RenderWindow, fmod: &rfmod::FmodSys) {
         let mut old_position = 100u;
         let mut tmp_s = self.playlist.get_current();
         let mut sound = match self.set_music(fmod, tmp_s) {
@@ -198,18 +197,18 @@ impl GraphicHandler {
             Err(e) => panic!("sound.play : {}", e)
         };
         self.set_chan_params(&chan);
-        let forward = FmodVector {
+        let forward = rfmod::FmodVector {
             x: 0f32,
             y: 0f32,
             z: 1f32
         };
-        let up = FmodVector {
+        let up = rfmod::FmodVector {
             x: 0f32,
             y: 1f32,
             z: 0f32
         };
-        let mut listener_pos = FmodVector::new();
-        let mut last_pos = FmodVector::new();
+        let mut listener_pos = rfmod::FmodVector::new();
+        let mut last_pos = rfmod::FmodVector::new();
 
         window.clear(&Color::black());
 
@@ -286,7 +285,7 @@ impl GraphicHandler {
 
                             if self.music_bar.is_inside(&v) {
                                 self.music_bar.clicked(&v);
-                                chan.set_position(self.music_bar.get_real_value(), enums::FMOD_TIMEUNIT_MS);
+                                chan.set_position(self.music_bar.get_real_value(), rfmod::FMOD_TIMEUNIT_MS);
                             } else if self.volume_bar.is_inside(&v) {
                                 self.volume_bar.clicked(&v);
                                 chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
@@ -374,7 +373,7 @@ impl GraphicHandler {
             };
             fmod.set_3D_listener_attributes(0,
                 &listener_pos,
-                &FmodVector{
+                &rfmod::FmodVector{
                     x: (listener_pos.x - last_pos.x) * 30f32,
                     y: (listener_pos.y - last_pos.y) * 30f32,
                     z: (listener_pos.z - last_pos.z) * 30f32},

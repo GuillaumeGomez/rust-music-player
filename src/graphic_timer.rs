@@ -47,7 +47,7 @@ impl GraphicTimer {
     }
 
     pub fn update_display(&mut self, position: uint, length: uint) {
-        let st = String::from_str(format!("{:02u}:{:02u} / {:02u}:{:02u}",
+        let st = String::from_str(format!("{:02}:{:02} / {:02}:{:02}",
             position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60).as_slice());
 
         if st != self.timer.get_string() {

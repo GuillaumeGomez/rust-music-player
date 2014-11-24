@@ -71,7 +71,7 @@ fn main() {
 
     let fmod = match FmodSys::new() {
         Ok(f) => {
-            f.init_with_parameters(10i32, FmodInitFlag(enums::FMOD_INIT_NORMAL));
+            f.init_with_parameters(10i32, FmodInitFlag(rfmod::FMOD_INIT_NORMAL));
             f
         },
         Err(e) => panic!("FmodSys.new : {}", e)
