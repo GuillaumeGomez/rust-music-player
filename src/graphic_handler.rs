@@ -217,8 +217,8 @@ impl GraphicHandler {
                 match window.poll_event() {
                     event::Closed => window.close(),
                     event::KeyReleased{code, ..} => match code {
-                        keyboard::Escape => window.close(),
-                        keyboard::Up => {
+                        keyboard::Key::Escape => window.close(),
+                        keyboard::Key::Up => {
                             tmp_s = self.playlist.get_prev();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
@@ -230,7 +230,7 @@ impl GraphicHandler {
                             };
                             self.set_chan_params(&chan);
                         }
-                        keyboard::Down => {
+                        keyboard::Key::Down => {
                             tmp_s = self.playlist.get_next();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
@@ -242,10 +242,10 @@ impl GraphicHandler {
                             };
                             self.set_chan_params(&chan);
                         }
-                        keyboard::Space => {
+                        keyboard::Key::Space => {
                             chan.set_paused(!chan.get_paused().unwrap());
                         }
-                        keyboard::Delete => {
+                        keyboard::Key::Delete => {
                             self.musics.remove_music(self.playlist.get_pos());
                             self.playlist.remove_current();
                             tmp_s = self.playlist.get_current();
@@ -259,7 +259,7 @@ impl GraphicHandler {
                             };
                             self.set_chan_params(&chan);
                         }
-                        keyboard::BackSpace => {
+                        keyboard::Key::BackSpace => {
                             self.graph_sound.reset_cross_pos();
                             listener_pos.x = self.graph_sound.x;
                             listener_pos.z = self.graph_sound.y;
@@ -267,12 +267,12 @@ impl GraphicHandler {
                         _ => {}
                     },
                     event::KeyPressed{code, ..} => match code {
-                        keyboard::Add => {
+                        keyboard::Key::Add => {
                             let tmp = self.volume_bar.get_real_value();
                             self.volume_bar.set_progress(tmp + 1);
                             chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
                         }
-                        keyboard::Subtract => {
+                        keyboard::Key::Subtract => {
                             let tmp = self.volume_bar.get_real_value();
                             self.volume_bar.set_progress(tmp - 1);
                             chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
@@ -280,7 +280,7 @@ impl GraphicHandler {
                         _ => {}
                     },
                     event::MouseButtonReleased{button, x, y} => match button {
-                        mouse::MouseLeft => {
+                        mouse::MouseButton::MouseLeft => {
                             let v = Vector2f{x: x as f32, y: y as f32};
 
                             if self.music_bar.is_inside(&v) {
