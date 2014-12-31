@@ -83,7 +83,6 @@ fn main() {
         Some(window) => window,
         None => panic!("Cannot create a new Render Window.")
     };
-
     
     let mut graph = GraphicHandler::new(&window, PlayList::from_vec(&args));
     window.set_vertical_sync_enabled(true);

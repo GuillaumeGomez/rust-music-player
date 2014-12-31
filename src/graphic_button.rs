@@ -48,7 +48,7 @@ impl GraphicButton {
         self
     }
 
-    pub fn set_label(&mut self, label: &String) {
+    pub fn set_label(&mut self, label: &str) {
         if label != &self.label.get_string() {
             self.label.set_string(label.as_slice());
             let size = self.label.get_local_bounds().width;
