@@ -34,6 +34,7 @@ use progress_bar::ProgressBar;
 use graphic_button::GraphicButton;
 use graphic_sound_position::GraphicSoundPosition;
 use graphic_element::GraphicElement;
+use graphic_container::GraphicContainer;
 use std::default::Default;
 
 pub struct GraphicHandler {
@@ -46,7 +47,8 @@ pub struct GraphicHandler {
     spectrum: GraphicSpectrum,
     graph_sound: GraphicSoundPosition,
     spectrum_button: GraphicButton,
-    position_button: GraphicButton
+    position_button: GraphicButton,
+    container: GraphicContainer
 }
 
 impl GraphicHandler {
@@ -58,6 +60,8 @@ impl GraphicHandler {
         self.spectrum_button.set_pushed(true);
         self.spectrum_button.set_label(&String::from_str("Spectrum"));
         self.position_button.set_label(&String::from_str("3D position"));
+        self.container.add_tab("Spectrum", self.spectrum);
+        self.container.add_tab("3D position", self.graph_sound);
         self
     }
 
@@ -100,6 +104,10 @@ impl GraphicHandler {
             graph_sound: GraphicElement::new_init(&Vector2f{x: 512f32, y: window.get_size().y as f32 - 35f32},
                 &Vector2f{x: 0f32, y: 26f32},
                 &Color::black(),
+                Some(&font)),
+            container: GraphicElement::new_init(&Vector2f{x: 512f32, y: window.get_size().y as f32 - 33f32},
+                &Vector2f{x: 0f32, y: 0f32},
+                &Color::black(),
                 Some(&font))
         }.init()
     }
@@ -141,13 +149,13 @@ impl GraphicHandler {
         self.musics.draw(win);
         self.volume_bar.draw(win);
         self.timer.draw(win);
-        self.spectrum_button.draw(win);
+        /*self.spectrum_button.draw(win);
         self.position_button.draw(win);
         if self.spectrum_button.is_pushed() {
             self.spectrum.draw(win);
         } else {
             self.graph_sound.draw(win);
-        }
+        }*/
         self.music_bar.draw(win);
         win.display();
     }

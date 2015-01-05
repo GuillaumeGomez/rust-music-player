@@ -24,8 +24,9 @@
 
 use rsfml::system::vector2::{Vector2f};
 use rsfml::graphics::{RenderWindow, Color, Font};
+use std::kinds::Sized;
 
-pub trait GraphicElement {
+pub trait GraphicElement: Sized {
 	fn new_init(size: &Vector2f, position: &Vector2f, color: &Color, additional: Option<&Font>) -> Self;
 	fn draw(&mut self, window: &mut RenderWindow);
 	fn is_inside(&self, position: &Vector2f) -> bool;

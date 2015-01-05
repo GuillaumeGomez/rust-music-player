@@ -28,7 +28,6 @@ extern crate rfmod;
 use rsfml::window::{ContextSettings, VideoMode, Close};
 use rsfml::graphics::{RenderWindow};
 use rfmod::*;
-use rfmod::types::*;
 use playlist::PlayList;
 use graphic_handler::GraphicHandler;
 use std::os;
@@ -42,6 +41,7 @@ mod graphic_spectrum;
 mod graphic_button;
 mod graphic_sound_position;
 mod graphic_element;
+mod graphic_container;
 
 fn main() {
     let args = os::args().tail().to_vec();
@@ -83,7 +83,6 @@ fn main() {
         Some(window) => window,
         None => panic!("Cannot create a new Render Window.")
     };
-
     
     let mut graph = GraphicHandler::new(&window, PlayList::from_vec(&args));
     window.set_vertical_sync_enabled(true);
