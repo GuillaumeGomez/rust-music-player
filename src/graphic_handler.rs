@@ -51,9 +51,9 @@ pub struct GraphicHandler {
 
 impl GraphicHandler {
     fn init(mut self) -> GraphicHandler {
-        self.music_bar.set_maximum(1u);
+        self.music_bar.set_maximum(1us);
         self.musics.add_musics(&self.playlist.to_vec());
-        self.volume_bar.set_maximum(100u);
+        self.volume_bar.set_maximum(100us);
         self.volume_bar.set_progress(100);
         self.spectrum_button.set_pushed(true);
         self.spectrum_button.set_label(&String::from_str("Spectrum"));
@@ -109,7 +109,7 @@ impl GraphicHandler {
             Ok(s) => {
                 s.set_3D_min_max_distance(5f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
-                self.music_bar.maximum = s.get_length(rfmod::FMOD_TIMEUNIT_MS).unwrap() as uint;
+                self.music_bar.maximum = s.get_length(rfmod::FMOD_TIMEUNIT_MS).unwrap() as usize;
                 if self.playlist.get_nb_musics() > 1 {
                     s.set_mode(rfmod::FmodMode(rfmod::FMOD_LOOP_OFF));
                 } else {
@@ -118,7 +118,7 @@ impl GraphicHandler {
                 Ok(s)
             }
             Err(err) => {
-                println!("FmodSys.create_sound failed on this file : {}\nError : {}", name, err);
+                println!("FmodSys.create_sound failed on this file : {}\nError : {:?}", name, err);
                 self.musics.remove_music(self.playlist.get_pos());
                 self.playlist.remove_current();
                 if self.playlist.get_nb_musics() == 0 {
@@ -132,7 +132,7 @@ impl GraphicHandler {
         }
     }
 
-    pub fn set_music_position(&mut self, position: uint) {
+    pub fn set_music_position(&mut self, position: usize) {
         self.music_bar.set_progress(position);
     }
 
@@ -157,22 +157,22 @@ impl GraphicHandler {
         chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
     }
 
-    fn main_loop(&mut self, chan: &rfmod::Channel, old_position: uint, length: u32) -> Option<uint> {
+    fn main_loop(&mut self, chan: &rfmod::Channel, old_position: usize, length: u32) -> Option<usize> {
         match chan.is_playing() {
             Ok(b) => {
                 if b == true {
                     let position = chan.get_position(rfmod::FMOD_TIMEUNIT_MS).unwrap();
 
                     if position != old_position {
-                        match chan.get_spectrum(256u, Some(1i32), Some(rfmod::DspFftWindow::Rect)) {
+                        match chan.get_spectrum(256us, Some(1i32), Some(rfmod::DspFftWindow::Rect)) {
                             Ok(f) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(256u, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &f);
+                                self.spectrum.update_spectrum(&chan.get_spectrum(256us, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &f);
                             }
                             Err(_) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(512u, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &Vec::new());
+                                self.spectrum.update_spectrum(&chan.get_spectrum(512us, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &Vec::new());
                             }
                         };
-                        self.timer.update_display(position, length as uint);
+                        self.timer.update_display(position, length as usize);
                         Some(position)
                     } else {
                         Some(old_position)
@@ -181,20 +181,20 @@ impl GraphicHandler {
                     None
                 }
             }
-            Err(e) => panic!("fmod error : {}", e)
+            Err(e) => panic!("fmod error : {:?}", e)
         }
     }
 
     pub fn start(&mut self, window: &mut RenderWindow, fmod: &rfmod::FmodSys) {
-        let mut old_position = 100u;
+        let mut old_position = 100us;
         let mut tmp_s = self.playlist.get_current();
         let mut sound = match self.set_music(fmod, tmp_s) {
             Ok(s) => s,
-            Err(e) => panic!("Error : {}", e)
+            Err(e) => panic!("Error : {:?}", e)
         };
         let mut chan = match sound.play() {
             Ok(c) => c,
-            Err(e) => panic!("sound.play : {}", e)
+            Err(e) => panic!("sound.play : {:?}", e)
         };
         self.set_chan_params(&chan);
         let forward = rfmod::FmodVector {
@@ -222,11 +222,11 @@ impl GraphicHandler {
                             tmp_s = self.playlist.get_prev();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
-                                Err(e) => panic!("Error : {}", e)
+                                Err(e) => panic!("Error : {:?}", e)
                             };
                             chan = match sound.play() {
                                 Ok(c) => c,
-                                Err(e) => panic!("sound.play : {}", e)
+                                Err(e) => panic!("sound.play : {:?}", e)
                             };
                             self.set_chan_params(&chan);
                         }
@@ -234,11 +234,11 @@ impl GraphicHandler {
                             tmp_s = self.playlist.get_next();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
-                                Err(e) => panic!("Error : {}", e)
+                                Err(e) => panic!("Error : {:?}", e)
                             };
                             chan = match sound.play() {
                                 Ok(c) => c,
-                                Err(e) => panic!("sound.play : {}", e)
+                                Err(e) => panic!("sound.play : {:?}", e)
                             };
                             self.set_chan_params(&chan);
                         }
@@ -251,11 +251,11 @@ impl GraphicHandler {
                             tmp_s = self.playlist.get_current();
                             sound = match self.set_music(fmod, tmp_s) {
                                 Ok(s) => s,
-                                Err(e) => panic!("Error : {}", e)
+                                Err(e) => panic!("Error : {:?}", e)
                             };
                             chan = match sound.play() {
                                 Ok(c) => c,
-                                Err(e) => panic!("sound.play : {}", e)
+                                Err(e) => panic!("sound.play : {:?}", e)
                             };
                             self.set_chan_params(&chan);
                         }
@@ -299,11 +299,11 @@ impl GraphicHandler {
 
                                     sound = match self.set_music(fmod, tmp_s) {
                                         Ok(s) => s,
-                                        Err(e) => panic!("Error : {}", e)
+                                        Err(e) => panic!("Error : {:?}", e)
                                     };
                                     chan = match sound.play() {
                                         Ok(c) => c,
-                                        Err(e) => panic!("sound.play : {}", e)
+                                        Err(e) => panic!("sound.play : {:?}", e)
                                     };
                                     self.set_chan_params(&chan);
                                 }
@@ -325,7 +325,7 @@ impl GraphicHandler {
                     },
                     event::MouseWheelMoved{delta, ..} => {
                         let tmp = self.musics.get_add_to_view();
-                        self.musics.set_to_add(tmp - delta as int);
+                        self.musics.set_to_add(tmp - delta as isize);
                     },
                     event::MouseMoved{x, y} => {
                         let v = Vector2f{x: x as f32, y: y as f32};
@@ -361,14 +361,14 @@ impl GraphicHandler {
                     tmp_s = self.playlist.get_next();
                     sound = match self.set_music(fmod, tmp_s) {
                         Ok(s) => s,
-                        Err(e) => panic!("Error : {}", e)
+                        Err(e) => panic!("Error : {:?}", e)
                     };
                     chan = match sound.play() {
                         Ok(c) => c,
-                        Err(e) => panic!("sound.play : {}", e)
+                        Err(e) => panic!("sound.play : {:?}", e)
                     };
                     self.set_chan_params(&chan);
-                    100u
+                    100us
                 }
             };
             fmod.set_3D_listener_attributes(0,

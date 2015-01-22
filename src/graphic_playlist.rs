@@ -33,10 +33,10 @@ use graphic_element::GraphicElement;
 pub struct GraphicPlayList {
     musics: Vec<String>,
     texts: Vec<rc::Text>,
-    to_draw: uint,
-    current: uint,
-    hover_element: Option<uint>,
-    add_to_view: int,
+    to_draw: usize,
+    current: usize,
+    hover_element: Option<usize>,
+    add_to_view: isize,
     cleaner: rc::RectangleShape,
     need_to_draw: bool,
     has_mouse: bool,
@@ -47,7 +47,7 @@ pub struct GraphicPlayList {
 impl GraphicPlayList {
     fn init(mut self, position: &Vector2f) -> GraphicPlayList {
         self.set_position(position);
-        self.set_current(0u);
+        self.set_current(0us);
         self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
         self.cleaner.set_outline_color(&Color::new_RGB(255, 255, 255));
         self.cleaner.set_outline_thickness(1f32);
@@ -81,28 +81,28 @@ impl GraphicPlayList {
         }
     }
 
-    pub fn set_to_add(&mut self, to_add: int) {
-        let tmp_add = to_add * 22i;
-        let max = (self.texts.len() as int + 1i) * 22i;
+    pub fn set_to_add(&mut self, to_add: isize) {
+        let tmp_add = to_add * 22is;
+        let max = (self.texts.len() as isize + 1is) * 22is;
 
-        if self.add_to_view != to_add && tmp_add >= 0i && tmp_add + self.to_draw as int * 22i < max
-            && self.texts.len() as int * 22i >= (self.cleaner.get_size().y as int - 1) {
-            let mut pos = self.cleaner.get_position().y as int - tmp_add as int;
+        if self.add_to_view != to_add && tmp_add >= 0is && tmp_add + self.to_draw as isize * 22is < max
+            && self.texts.len() as isize * 22is >= (self.cleaner.get_size().y as isize - 1) {
+            let mut pos = self.cleaner.get_position().y as isize - tmp_add as isize;
             for tmp in self.texts.iter_mut() {
                 let x = tmp.get_position().x;
                 tmp.set_position(&Vector2f{x: x as f32, y: pos as f32});
-                pos += 22i;
+                pos += 22is;
             }
             self.add_to_view = to_add;
             self.need_to_draw = true;
         }
     }
 
-    pub fn set_current(&mut self, current: uint) {
+    pub fn set_current(&mut self, current: usize) {
         self.set_current_intern(current, false)
     }
 
-    fn set_current_intern(&mut self, current: uint, by_click: bool) {
+    fn set_current_intern(&mut self, current: usize, by_click: bool) {
         if self.texts.len() > 0 && current != self.current {
             if self.current < self.texts.len() {
                 self.texts[self.current].set_color(&Color::new_RGB(255, 255, 255));
@@ -112,29 +112,29 @@ impl GraphicPlayList {
             self.need_to_draw = true;
             let tmp_to_draw = self.to_draw;
 
-            if by_click == false && self.texts.len() as int * 22i >= (self.cleaner.get_size().y as int - 1) {
-                if self.current as int + 2i >= self.to_draw as int + self.add_to_view {
-                    self.set_to_add(current as int + 2i - tmp_to_draw as int);
-                } else if (self.current as int) < self.add_to_view {
-                    self.set_to_add(current as int);
+            if by_click == false && self.texts.len() as isize * 22is >= (self.cleaner.get_size().y as isize - 1) {
+                if self.current as isize + 2is >= self.to_draw as isize + self.add_to_view {
+                    self.set_to_add(current as isize + 2is - tmp_to_draw as isize);
+                } else if (self.current as isize) < self.add_to_view {
+                    self.set_to_add(current as isize);
                 }
             }
         }
     }
 
-    pub fn get_current(&self) -> uint {
+    pub fn get_current(&self) -> usize {
         self.current
     }
 
-    pub fn get_add_to_view(&self) -> int {
+    pub fn get_add_to_view(&self) -> isize {
         self.add_to_view
     }
 
-    pub fn remove_music(&mut self, pos: uint) {
+    pub fn remove_music(&mut self, pos: usize) {
         self.texts.remove(pos);
         let tmp = Vector2f{x: self.cleaner.get_position().x, y: self.cleaner.get_position().y};
         self.set_position(&tmp);
-        if self.musics.len() == 0u || self.texts.len() == 0u {
+        if self.musics.len() == 0us || self.texts.len() == 0us {
             panic!("GraphicPlayList cannot be empty");
         }
         self.need_to_draw = true;
@@ -146,14 +146,14 @@ impl GraphicElement for GraphicPlayList {
         GraphicPlayList {
             musics: Vec::new(),
             texts: Vec::new(),
-            to_draw: 0u,
-            current: 1u,
+            to_draw: 0us,
+            current: 1us,
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x - 2f32, y: size.y - 2f32}) {
                 Some(l) => l,
                 None => panic!("Cannot create cleaner for GraphicPlayList")
             },
             hover_element: None,
-            add_to_view: 0i,
+            add_to_view: 0is,
             need_to_draw: true,
             has_mouse: false,
             font: match font {
@@ -178,7 +178,7 @@ impl GraphicElement for GraphicPlayList {
                 }
                 pos += 22f32;
             }
-            if self.to_draw > 0 && self.to_draw * 22u > limit as uint + 2u {
+            if self.to_draw > 0 && self.to_draw * 22us > limit as usize + 2us {
                 self.to_draw -= 1;
             }
         }
@@ -213,7 +213,7 @@ impl GraphicElement for GraphicPlayList {
     }
 
     fn cursor_moved(&mut self, position: &Vector2f) {
-        let tmp = ((position.y - self.cleaner.get_position().y) / 22f32 + self.add_to_view as f32) as uint;
+        let tmp = ((position.y - self.cleaner.get_position().y) / 22f32 + self.add_to_view as f32) as usize;
 
         self.need_to_draw = true;
         self.has_mouse = true;
@@ -243,7 +243,7 @@ impl GraphicElement for GraphicPlayList {
 
     fn clicked(&mut self, position: &Vector2f) {
         if position.y >= self.cleaner.get_position().y {
-            let tmp = ((position.y - self.cleaner.get_position().y) / 22f32 + self.add_to_view as f32) as uint;
+            let tmp = ((position.y - self.cleaner.get_position().y) / 22f32 + self.add_to_view as f32) as usize;
 
             self.need_to_draw = true;
             if tmp < self.texts.len() {
@@ -279,15 +279,15 @@ impl GraphicElement for GraphicPlayList {
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
-        let mut it = 0i;
+        let mut it = 0is;
 
         win.draw(&self.cleaner);
         if self.texts.len() > 0 {
             for tmp in self.texts.iter_mut() {
-                if it == self.to_draw as int + self.add_to_view {
+                if it == self.to_draw as isize + self.add_to_view {
                     break;
                 }
-                if it >= self.add_to_view as int {
+                if it >= self.add_to_view as isize {
                     win.draw(tmp);
                 }
                 it += 1;

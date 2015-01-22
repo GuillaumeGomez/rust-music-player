@@ -30,9 +30,9 @@ use graphic_element::GraphicElement;
 
 pub struct ProgressBar {
     line: rc::RectangleShape,
-    pub maximum: uint,
-    value: uint,
-    real_value: uint,
+    pub maximum: usize,
+    value: usize,
+    real_value: usize,
     cleaner: rc::RectangleShape,
     need_to_draw: bool,
     name: String
@@ -48,14 +48,14 @@ impl ProgressBar {
         self
     }
 
-    pub fn set_progress(&mut self, position: uint) {
+    pub fn set_progress(&mut self, position: usize) {
         let tmp = if position > self.maximum {
             self.maximum
         } else {
             position
         };
-        if self.maximum > 0u {
-            let new_value = tmp * (self.cleaner.get_size().x as uint - 2u) / self.maximum;
+        if self.maximum > 0us {
+            let new_value = tmp * (self.cleaner.get_size().x as usize - 2us) / self.maximum;
 
             if new_value != self.value {
                 self.need_to_draw = true;
@@ -66,11 +66,11 @@ impl ProgressBar {
         }
     }
 
-    pub fn get_real_value(&self) -> uint {
+    pub fn get_real_value(&self) -> usize {
         self.real_value
     }
 
-    pub fn set_maximum(&mut self, maximum: uint) {
+    pub fn set_maximum(&mut self, maximum: usize) {
         self.maximum = maximum;
     }
 }
@@ -82,9 +82,9 @@ impl GraphicElement for ProgressBar {
                 Some(l) => l,
                 None => panic!("Cannot create progress bar")
             },
-            maximum: 0u,
-            value: 0u,
-            real_value: 0u,
+            maximum: 0us,
+            value: 0us,
+            real_value: 0us,
             name: String::new(),
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32}) {
                 Some(l) => l,
@@ -103,7 +103,7 @@ impl GraphicElement for ProgressBar {
         let in_order = (position.x - self.line.get_position().x) / (self.cleaner.get_size().x - 1f32) * 100f32;
         let tmp_maximum = self.maximum;
 
-        self.set_progress((in_order * tmp_maximum as f32 / 100f32) as uint);
+        self.set_progress((in_order * tmp_maximum as f32 / 100f32) as usize);
     }
 
     fn draw(&mut self, window: &mut RenderWindow) {

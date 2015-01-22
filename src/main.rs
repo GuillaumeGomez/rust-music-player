@@ -20,7 +20,7 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-#![feature(globs)]
+#![allow(unstable)]
 
 extern crate rsfml;
 extern crate rfmod;
@@ -28,7 +28,6 @@ extern crate rfmod;
 use rsfml::window::{ContextSettings, VideoMode, Close};
 use rsfml::graphics::{RenderWindow};
 use rfmod::*;
-use rfmod::types::*;
 use playlist::PlayList;
 use graphic_handler::GraphicHandler;
 use std::os;
@@ -74,7 +73,7 @@ fn main() {
             f.init_with_parameters(10i32, FmodInitFlag(rfmod::FMOD_INIT_NORMAL));
             f
         },
-        Err(e) => panic!("FmodSys.new : {}", e)
+        Err(e) => panic!("FmodSys.new : {:?}", e)
     };
     let mut window = match RenderWindow::new(VideoMode::new_init(800, 600, 32), 
                                              "Music Player", 
@@ -87,6 +86,6 @@ fn main() {
     
     let mut graph = GraphicHandler::new(&window, PlayList::from_vec(&args));
     window.set_vertical_sync_enabled(true);
-    window.set_framerate_limit(30u);
+    window.set_framerate_limit(30u32);
     graph.start(&mut window, &fmod);
 }

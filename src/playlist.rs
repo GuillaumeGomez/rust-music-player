@@ -25,7 +25,7 @@ use std::io::fs::PathExtensions;
 
 pub struct PlayList {
     musics: Vec<String>,
-    actual: uint
+    actual: usize
 }
 
 impl PlayList {
@@ -36,7 +36,7 @@ impl PlayList {
     pub fn new() -> PlayList {
         PlayList {
             musics: Vec::new(),
-            actual: 0u
+            actual: 0us
         }
     }
 
@@ -57,11 +57,11 @@ impl PlayList {
     pub fn from_vec(vec: &Vec<String>) -> PlayList {
         PlayList {
             musics: vec.clone(),
-            actual: 0u
+            actual: 0us
         }.init()
     }
 
-    pub fn set_actual(&mut self, actual: uint) {
+    pub fn set_actual(&mut self, actual: usize) {
         self.actual = if self.musics.len() <= actual {
             self.musics.len() - 1
         } else {
@@ -75,9 +75,9 @@ impl PlayList {
 
     pub fn get_next(&mut self) -> String {
         self.actual = if self.musics.len() == 0 {
-            0u
+            0us
         } else if self.actual >= self.musics.len() - 1 {
-            0u
+            0us
         } else {
             self.actual + 1
         };
@@ -90,7 +90,7 @@ impl PlayList {
             if self.musics.len() > 0 {
                 self.musics.len() - 1
             } else {
-                0u
+                0us
             }
         } else {
             self.actual - 1
@@ -130,11 +130,11 @@ impl PlayList {
         self.musics[self.actual].clone()
     }
 
-    pub fn get_nb_musics(&self) -> uint {
+    pub fn get_nb_musics(&self) -> usize {
         self.musics.len()
     }
 
-    pub fn get_pos(&self) -> uint {
+    pub fn get_pos(&self) -> usize {
         self.actual
     }
 }

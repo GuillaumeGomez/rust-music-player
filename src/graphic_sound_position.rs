@@ -104,11 +104,11 @@ impl GraphicElement for GraphicSoundPosition {
                 size.y as f32 / 2f32 - 2f32
             } else {
                 size.x as f32 / 2f32 - 2f32
-            }, 50u) {
+            }, 50u32) {
                 Some(t) => t,
                 None => panic!("Cannot create circle for GraphicSoundPosition")
             },
-            center: match rc::CircleShape::new_init(6f32, 15u) {
+            center: match rc::CircleShape::new_init(6f32, 15u32) {
                 Some(t) => t,
                 None => panic!("Cannot create center for GraphicSoundPosition")
             },
