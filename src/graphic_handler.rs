@@ -109,7 +109,10 @@ impl GraphicHandler {
             Ok(s) => {
                 s.set_3D_min_max_distance(5f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
-                self.music_bar.maximum = s.get_length(rfmod::FMOD_TIMEUNIT_MS).unwrap() as usize;
+                self.music_bar.maximum = match s.get_length(rfmod::FMOD_TIMEUNIT_MS) {
+                    Ok(l) => l as usize,
+                    Err(_) => 0us
+                };
                 if self.playlist.get_nb_musics() > 1 {
                     s.set_mode(rfmod::FmodMode(rfmod::FMOD_LOOP_OFF));
                 } else {
@@ -161,15 +164,37 @@ impl GraphicHandler {
         match chan.is_playing() {
             Ok(b) => {
                 if b == true {
-                    let position = chan.get_position(rfmod::FMOD_TIMEUNIT_MS).unwrap();
+                    let position = match chan.get_position(rfmod::FMOD_TIMEUNIT_MS) {
+                        Ok(p) => p,
+                        Err(e) => {
+                            println!("Error on channel.get_position: {:?}", e);
+                            old_position
+                        }
+                    };
 
                     if position != old_position {
                         match chan.get_spectrum(256us, Some(1i32), Some(rfmod::DspFftWindow::Rect)) {
                             Ok(f) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(256us, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &f);
+                                self.spectrum.update_spectrum(&match chan.get_spectrum(256us, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
+                                    Ok(s) => s,
+                                    Err(_) => {
+                                        let mut tmp = Vec::new();
+
+                                        tmp.push_all(&[0f32; 256]);
+                                        tmp
+                                    }
+                                }, &f);
                             }
                             Err(_) => {
-                                self.spectrum.update_spectrum(&chan.get_spectrum(512us, Some(0i32), Some(rfmod::DspFftWindow::Rect)).unwrap(), &Vec::new());
+                                self.spectrum.update_spectrum(&match chan.get_spectrum(512us, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
+                                    Ok(s) => s,
+                                    Err(_) => {
+                                        let mut tmp = Vec::new();
+
+                                        tmp.push_all(&[0f32; 256]);
+                                        tmp
+                                    }
+                                }, &Vec::new());
                             }
                         };
                         self.timer.update_display(position, length as usize);
@@ -243,7 +268,10 @@ impl GraphicHandler {
                             self.set_chan_params(&chan);
                         }
                         keyboard::Key::Space => {
-                            chan.set_paused(!chan.get_paused().unwrap());
+                            chan.set_paused(!match chan.get_paused() {
+                                Ok(p) => p,
+                                _ => false
+                            });
                         }
                         keyboard::Key::Delete => {
                             self.musics.remove_music(self.playlist.get_pos());
