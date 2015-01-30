@@ -20,7 +20,7 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-#![allow(unstable)]
+#![feature(io, os, core, collections, path)]
 
 extern crate rsfml;
 extern crate rfmod;

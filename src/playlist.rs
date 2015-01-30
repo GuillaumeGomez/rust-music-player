@@ -21,7 +21,7 @@
 */
 
 #![allow(dead_code)]
-use std::io::fs::PathExtensions;
+use std::old_io::fs::PathExtensions;
 
 pub struct PlayList {
     musics: Vec<String>,
