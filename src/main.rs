@@ -20,17 +20,18 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-#![feature(io, os, core, collections, path)]
+#![feature(collections, path_ext)]
 
-extern crate rsfml;
 extern crate rfmod;
+extern crate sfml;
+extern crate num;
 
-use rsfml::window::{ContextSettings, VideoMode, Close};
-use rsfml::graphics::{RenderWindow};
+use sfml::window::{ContextSettings, VideoMode, Close};
+use sfml::graphics::{RenderWindow};
 use rfmod::*;
 use playlist::PlayList;
 use graphic_handler::GraphicHandler;
-use std::os;
+use std::env;
 
 mod graphic_handler;
 mod playlist;
@@ -43,14 +44,14 @@ mod graphic_sound_position;
 mod graphic_element;
 
 fn main() {
-    let args = os::args().tail().to_vec();
+    let mut args : Vec<String> = env::args().collect();
 
-    if args.len() < 1 {
+    if args.len() < 2 {
         println!("USAGE: music_player [music_files ...]");
         println!("For more information: music_player -h");
-        println!("Or more information: music_player --help");
+        println!("Or                  : music_player --help");
         return;
-    } else if args.len() == 1 && (args[0].as_slice() == "-h" || args[0].as_slice() == "--help") {
+    } else if args.len() == 2 && (args[1] == "-h" || args[1] == "--help") {
         println!("usage: music_player [music_files ...]");
         println!("Here is the list of the binded keyboards keys:");
         println!("* ESC : exit the program");
@@ -82,9 +83,8 @@ fn main() {
         Some(window) => window,
         None => panic!("Cannot create a new Render Window.")
     };
-
     
-    let mut graph = GraphicHandler::new(&window, PlayList::from_vec(&args));
+    let mut graph = GraphicHandler::new(&window, PlayList::from_slice(args.tail()));
     window.set_vertical_sync_enabled(true);
     window.set_framerate_limit(30u32);
     graph.start(&mut window, &fmod);

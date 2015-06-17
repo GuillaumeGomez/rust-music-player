@@ -22,8 +22,8 @@
 
 #![allow(dead_code)]
 
-use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, Font};
+use sfml::system::vector2::{Vector2f};
+use sfml::graphics::{RenderWindow, Color, Font};
 
 pub trait GraphicElement {
 	fn new_init(size: &Vector2f, position: &Vector2f, color: &Color, additional: Option<&Font>) -> Self;

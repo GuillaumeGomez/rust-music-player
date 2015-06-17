@@ -23,9 +23,9 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape, RenderTarget};
+use sfml::graphics::rc;
+use sfml::system::vector2::{Vector2f};
+use sfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape, RenderTarget};
 use std::rc::Rc;
 use std::cell::RefCell;
 use graphic_element::GraphicElement;
@@ -40,19 +40,19 @@ pub struct GraphicTimer {
 impl GraphicTimer {
     fn init(mut self, position: &Vector2f) -> GraphicTimer {
         self.set_position(position);
-        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
-        self.cleaner.set_outline_color(&Color::new_RGB(255, 255, 255));
+        self.cleaner.set_fill_color(&Color::new_rgb(0, 0, 0));
+        self.cleaner.set_outline_color(&Color::new_rgb(255, 255, 255));
         self.cleaner.set_outline_thickness(1f32);
         self
     }
 
     pub fn update_display(&mut self, position: usize, length: usize) {
-        let st = String::from_str(format!("{:02}:{:02} / {:02}:{:02}",
-            position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60).as_slice());
+        let st = String::from_str(&format!("{:02}:{:02} / {:02}:{:02}",
+            position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60));
 
         if st != self.timer.get_string() {
             self.need_to_draw = true;
-            self.timer.set_string(st.as_slice());
+            self.timer.set_string(&st);
             let size = self.timer.get_local_bounds().width;
             let y = self.timer.get_position().y;
             self.timer.set_position(&Vector2f{x: (self.cleaner.get_size().x - 1f32 - size as f32) / 2f32 + self.cleaner.get_position().x,

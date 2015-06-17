@@ -7,8 +7,7 @@ authors = ["Guillaume Gomez <guillaume1.gomez@gmail.com>"]
 [[bin]]
 name = "music_player"
 
-[dependencies.rust-sfml]
-git = "https://github.com/jeremyletang/rust-sfml.git"
-
-[dependencies.fmod]
-git = "https://github.com/GuillaumeGomez/rust-fmod.git"
+[dependencies]
+sfml = "*"
+fmod = "*"
+num = "*"

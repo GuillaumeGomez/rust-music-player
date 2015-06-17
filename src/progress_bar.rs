@@ -23,9 +23,9 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, RectangleShape, Font, RenderTarget};
+use sfml::graphics::rc;
+use sfml::system::vector2::{Vector2f};
+use sfml::graphics::{RenderWindow, Color, RectangleShape, Font, RenderTarget};
 use graphic_element::GraphicElement;
 
 pub struct ProgressBar {
@@ -42,8 +42,8 @@ impl ProgressBar {
     fn init(mut self, color: &Color, position: &Vector2f) -> ProgressBar {
         self.set_position(position);
         self.line.set_fill_color(color);
-        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
-        self.cleaner.set_outline_color(&Color::new_RGB(255, 255, 255));
+        self.cleaner.set_fill_color(&Color::new_rgb(0, 0, 0));
+        self.cleaner.set_outline_color(&Color::new_rgb(255, 255, 255));
         self.cleaner.set_outline_thickness(1f32);
         self
     }
@@ -54,8 +54,8 @@ impl ProgressBar {
         } else {
             position
         };
-        if self.maximum > 0us {
-            let new_value = tmp * (self.cleaner.get_size().x as usize - 2us) / self.maximum;
+        if self.maximum > 0usize {
+            let new_value = tmp * (self.cleaner.get_size().x as usize - 2usize) / self.maximum;
 
             if new_value != self.value {
                 self.need_to_draw = true;
@@ -82,9 +82,9 @@ impl GraphicElement for ProgressBar {
                 Some(l) => l,
                 None => panic!("Cannot create progress bar")
             },
-            maximum: 0us,
-            value: 0us,
-            real_value: 0us,
+            maximum: 0usize,
+            value: 0usize,
+            real_value: 0usize,
             name: String::new(),
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 + 1f32, y: size.y as f32 + 1f32}) {
                 Some(l) => l,

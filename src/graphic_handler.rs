@@ -22,9 +22,9 @@
 
 #![allow(dead_code)]
 
-use rsfml::system::vector2::{Vector2f};
-use rsfml::window::{event, keyboard, mouse};
-use rsfml::graphics::{RenderWindow, Color, Font, RenderTarget};
+use sfml::system::vector2::{Vector2f};
+use sfml::window::{event, keyboard, mouse};
+use sfml::graphics::{RenderWindow, Color, Font, RenderTarget};
 use rfmod;
 use playlist::PlayList;
 use graphic_timer::GraphicTimer;
@@ -51,9 +51,9 @@ pub struct GraphicHandler {
 
 impl GraphicHandler {
     fn init(mut self) -> GraphicHandler {
-        self.music_bar.set_maximum(1us);
+        self.music_bar.set_maximum(1usize);
         self.musics.add_musics(&self.playlist.to_vec());
-        self.volume_bar.set_maximum(100us);
+        self.volume_bar.set_maximum(100usize);
         self.volume_bar.set_progress(100);
         self.spectrum_button.set_pushed(true);
         self.spectrum_button.set_label(&String::from_str("Spectrum"));
@@ -78,11 +78,11 @@ impl GraphicHandler {
                 Some(&font)),
             music_bar: GraphicElement::new_init(&Vector2f{x: window.get_size().x as f32 + 2f32, y: 8f32},
                 &Vector2f{x: -1f32, y: window.get_size().y as f32 - 8f32},
-                &Color::new_RGB(255, 255, 255),
+                &Color::new_rgb(255, 255, 255),
                 None),
             volume_bar: GraphicElement::new_init(&Vector2f{x: 120f32, y: 20f32},
                 &Vector2f{x: 512f32, y: window.get_size().y as f32 - 30f32},
-                &Color::new_RGB(255, 25, 25),
+                &Color::new_rgb(255, 25, 25),
                 None),
             playlist: playlist,
             spectrum_button: GraphicElement::new_init(&Vector2f{x: 256f32, y: 25f32},
@@ -95,7 +95,7 @@ impl GraphicHandler {
                 Some(&font)),
             spectrum: GraphicElement::new_init(&Vector2f{x: 512f32, y: window.get_size().y as f32 - 33f32},
                 &Vector2f{x: 0f32, y: 25f32},
-                &Color::new_RGB(50, 100, 30),
+                &Color::new_rgb(50, 100, 30),
                 None),
             graph_sound: GraphicElement::new_init(&Vector2f{x: 512f32, y: window.get_size().y as f32 - 35f32},
                 &Vector2f{x: 0f32, y: 26f32},
@@ -105,13 +105,13 @@ impl GraphicHandler {
     }
 
     pub fn set_music(&mut self, fmod: &rfmod::FmodSys, name: String) -> Result<rfmod::Sound, String> {
-        match fmod.create_sound(name.as_slice(), Some(rfmod::FmodMode(rfmod::FMOD_SOFTWARE | rfmod::FMOD_3D)), None) {
+        match fmod.create_sound(&name, Some(rfmod::FmodMode(rfmod::FMOD_SOFTWARE | rfmod::FMOD_3D)), None) {
             Ok(s) => {
                 s.set_3D_min_max_distance(5f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
                 self.music_bar.maximum = match s.get_length(rfmod::FMOD_TIMEUNIT_MS) {
                     Ok(l) => l as usize,
-                    Err(_) => 0us
+                    Err(_) => 0usize
                 };
                 if self.playlist.get_nb_musics() > 1 {
                     s.set_mode(rfmod::FmodMode(rfmod::FMOD_LOOP_OFF));
@@ -173,9 +173,9 @@ impl GraphicHandler {
                     };
 
                     if position != old_position {
-                        match chan.get_spectrum(256us, Some(1i32), Some(rfmod::DspFftWindow::Rect)) {
+                        match chan.get_spectrum(256usize, Some(1i32), Some(rfmod::DspFftWindow::Rect)) {
                             Ok(f) => {
-                                self.spectrum.update_spectrum(&match chan.get_spectrum(256us, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
+                                self.spectrum.update_spectrum(&match chan.get_spectrum(256usize, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
                                     Ok(s) => s,
                                     Err(_) => {
                                         let mut tmp = Vec::new();
@@ -186,7 +186,7 @@ impl GraphicHandler {
                                 }, &f);
                             }
                             Err(_) => {
-                                self.spectrum.update_spectrum(&match chan.get_spectrum(512us, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
+                                self.spectrum.update_spectrum(&match chan.get_spectrum(512usize, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
                                     Ok(s) => s,
                                     Err(_) => {
                                         let mut tmp = Vec::new();
@@ -211,7 +211,7 @@ impl GraphicHandler {
     }
 
     pub fn start(&mut self, window: &mut RenderWindow, fmod: &rfmod::FmodSys) {
-        let mut old_position = 100us;
+        let mut old_position = 100usize;
         let mut tmp_s = self.playlist.get_current();
         let mut sound = match self.set_music(fmod, tmp_s) {
             Ok(s) => s,
@@ -396,7 +396,7 @@ impl GraphicHandler {
                         Err(e) => panic!("sound.play : {:?}", e)
                     };
                     self.set_chan_params(&chan);
-                    100us
+                    100usize
                 }
             };
             fmod.set_3D_listener_attributes(0,

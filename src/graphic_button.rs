@@ -23,9 +23,9 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, RectangleShape, Text, Font, RenderTarget};
+use sfml::graphics::rc;
+use sfml::system::vector2::{Vector2f};
+use sfml::graphics::{RenderWindow, Color, RectangleShape, Text, Font, RenderTarget};
 use std::rc::Rc;
 use std::cell::RefCell;
 use graphic_element::GraphicElement;
@@ -42,15 +42,15 @@ pub struct GraphicButton {
 impl GraphicButton {
     fn init(mut self, position: &Vector2f) -> GraphicButton {
         self.set_position(position);
-        self.button.set_fill_color(&Color::new_RGB(10, 10, 10));
-        self.button.set_outline_color(&Color::new_RGB(255, 255, 255));
+        self.button.set_fill_color(&Color::new_rgb(10, 10, 10));
+        self.button.set_outline_color(&Color::new_rgb(255, 255, 255));
         self.button.set_outline_thickness(1f32);
         self
     }
 
     pub fn set_label(&mut self, label: &String) {
         if label != &self.label.get_string() {
-            self.label.set_string(label.as_slice());
+            self.label.set_string(&label);
             let size = self.label.get_local_bounds().width;
             self.label.set_position(&Vector2f{x: (self.button.get_size().x - 1f32 - size as f32) / 2f32 + self.button.get_position().x as f32,
                                               y: self.button.get_position().y + (self.button.get_size().y - 20f32) / 2f32 - 2f32});
@@ -66,9 +66,9 @@ impl GraphicButton {
         if self.pushed != pushed {
             self.pushed = pushed;
             if self.pushed {
-                self.button.set_fill_color(&Color::new_RGB(205, 187, 100));
+                self.button.set_fill_color(&Color::new_rgb(205, 187, 100));
             } else {
-                self.button.set_fill_color(&Color::new_RGB(10, 10, 10));
+                self.button.set_fill_color(&Color::new_rgb(10, 10, 10));
             }
             self.need_to_draw = true;
         }

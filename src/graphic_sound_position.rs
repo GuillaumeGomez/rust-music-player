@@ -23,13 +23,13 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, RectangleShape, CircleShape, Font, RenderTarget};
+use sfml::graphics::rc;
+use sfml::system::vector2::{Vector2f};
+use sfml::graphics::{RenderWindow, Color, RectangleShape, CircleShape, Font, RenderTarget};
 use std::rc::Rc;
 use std::cell::RefCell;
 use graphic_element::GraphicElement;
-use std::num::Float;
+use num::Float;
 
 pub struct GraphicSoundPosition {
     circle: rc::CircleShape,
@@ -48,14 +48,14 @@ pub struct GraphicSoundPosition {
 
 impl GraphicSoundPosition {
     fn init(mut self, position: &Vector2f) -> GraphicSoundPosition {
-        self.circle.set_fill_color(&Color::new_RGB(0, 0, 0));
-        self.circle.set_outline_color(&Color::new_RGB(255, 255, 255));
+        self.circle.set_fill_color(&Color::new_rgb(0, 0, 0));
+        self.circle.set_outline_color(&Color::new_rgb(255, 255, 255));
         self.circle.set_outline_thickness(1f32);
         self.cross1.set_rotation(45f32);
-        self.cross1.set_fill_color(&Color::new_RGB(255, 50, 50));
+        self.cross1.set_fill_color(&Color::new_rgb(255, 50, 50));
         self.cross2.set_rotation(315f32);
-        self.cross2.set_fill_color(&Color::new_RGB(255, 50, 50));
-        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
+        self.cross2.set_fill_color(&Color::new_rgb(255, 50, 50));
+        self.cleaner.set_fill_color(&Color::new_rgb(0, 0, 0));
         let size = self.cleaner.get_size();
 
         self.set_cross_pos(&Vector2f{x: size.x / 2f32 + position.x,
@@ -88,8 +88,8 @@ impl GraphicSoundPosition {
         let size = self.cleaner.get_size();
 
         self.set_cross_pos(&Vector2f{x: pos.x + size.x / 2f32, y: pos.y + size.y / 2f32});
-        self.text_x.set_string(format!("x: {}", self.x).as_slice());
-        self.text_y.set_string(format!("y: {}", self.y).as_slice());
+        self.text_x.set_string(&format!("x: {}", self.x));
+        self.text_y.set_string(&format!("y: {}", self.y));
     }
 }
 
@@ -155,8 +155,8 @@ impl GraphicElement for GraphicSoundPosition {
             self.x = tmp_x * self.limit / -radius;
             self.y = tmp_y * self.limit / radius;
             self.set_cross_pos(&Vector2f{x: position.x, y: position.y});
-            self.text_x.set_string(format!("x: {}", self.x).as_slice());
-            self.text_y.set_string(format!("y: {}", self.y).as_slice());
+            self.text_x.set_string(&format!("x: {}", self.x));
+            self.text_y.set_string(&format!("y: {}", self.y));
         }
     }
 

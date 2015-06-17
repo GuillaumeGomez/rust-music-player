@@ -20,8 +20,8 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-#![allow(dead_code)]
-use std::old_io::fs::PathExtensions;
+use std::path::Path;
+use std::fs::PathExt;
 
 pub struct PlayList {
     musics: Vec<String>,
@@ -36,7 +36,7 @@ impl PlayList {
     pub fn new() -> PlayList {
         PlayList {
             musics: Vec::new(),
-            actual: 0us
+            actual: 0usize
         }
     }
 
@@ -44,7 +44,7 @@ impl PlayList {
         let mut tmp = Vec::new();
 
         for it in self.musics.iter() {
-            let fd = Path::new(it.as_slice());
+            let fd = Path::new(&it);
 
             if fd.is_file() {
                 tmp.push(it.clone());
@@ -54,11 +54,14 @@ impl PlayList {
         self
     }
 
-    pub fn from_vec(vec: &Vec<String>) -> PlayList {
-        PlayList {
-            musics: vec.clone(),
-            actual: 0us
-        }.init()
+    pub fn from_slice(vec: &[String]) -> PlayList {
+        let mut p = PlayList {
+            musics: Vec::with_capacity(vec.len()),
+            actual: 0usize
+        };
+
+        p.musics.push_all(vec);
+        p.init()
     }
 
     pub fn set_actual(&mut self, actual: usize) {
@@ -75,9 +78,9 @@ impl PlayList {
 
     pub fn get_next(&mut self) -> String {
         self.actual = if self.musics.len() == 0 {
-            0us
+            0usize
         } else if self.actual >= self.musics.len() - 1 {
-            0us
+            0usize
         } else {
             self.actual + 1
         };
@@ -90,7 +93,7 @@ impl PlayList {
             if self.musics.len() > 0 {
                 self.musics.len() - 1
             } else {
-                0us
+                0usize
             }
         } else {
             self.actual - 1

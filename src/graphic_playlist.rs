@@ -23,9 +23,9 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape, RenderTarget};
+use sfml::graphics::rc;
+use sfml::system::vector2::{Vector2f};
+use sfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape, RenderTarget};
 use std::rc::Rc;
 use std::cell::RefCell;
 use graphic_element::GraphicElement;
@@ -47,9 +47,9 @@ pub struct GraphicPlayList {
 impl GraphicPlayList {
     fn init(mut self, position: &Vector2f) -> GraphicPlayList {
         self.set_position(position);
-        self.set_current(0us);
-        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
-        self.cleaner.set_outline_color(&Color::new_RGB(255, 255, 255));
+        self.set_current(0usize);
+        self.cleaner.set_fill_color(&Color::new_rgb(0, 0, 0));
+        self.cleaner.set_outline_color(&Color::new_rgb(255, 255, 255));
         self.cleaner.set_outline_thickness(1f32);
         self
     }
@@ -65,7 +65,7 @@ impl GraphicPlayList {
                 } else {
                     Vector2f{x: self.cleaner.get_position().x + 4f32, y: self.cleaner.get_position().y - 22f32}
                 };*/
-            self.texts.push(match rc::Text::new_init(music.as_slice().split_terminator('/').last().unwrap(),
+            self.texts.push(match rc::Text::new_init(music.split('/').last().unwrap(),
                 Rc::new(RefCell::new(self.font.clone())), 20) {
                 Some(t) => t,
                 None => panic!("Cannot create Text")
@@ -82,16 +82,16 @@ impl GraphicPlayList {
     }
 
     pub fn set_to_add(&mut self, to_add: isize) {
-        let tmp_add = to_add * 22is;
-        let max = (self.texts.len() as isize + 1is) * 22is;
+        let tmp_add = to_add * 22isize;
+        let max = (self.texts.len() as isize + 1isize) * 22isize;
 
-        if self.add_to_view != to_add && tmp_add >= 0is && tmp_add + self.to_draw as isize * 22is < max
-            && self.texts.len() as isize * 22is >= (self.cleaner.get_size().y as isize - 1) {
+        if self.add_to_view != to_add && tmp_add >= 0isize && tmp_add + self.to_draw as isize * 22isize < max
+            && self.texts.len() as isize * 22isize >= (self.cleaner.get_size().y as isize - 1) {
             let mut pos = self.cleaner.get_position().y as isize - tmp_add as isize;
             for tmp in self.texts.iter_mut() {
                 let x = tmp.get_position().x;
                 tmp.set_position(&Vector2f{x: x as f32, y: pos as f32});
-                pos += 22is;
+                pos += 22isize;
             }
             self.add_to_view = to_add;
             self.need_to_draw = true;
@@ -105,16 +105,16 @@ impl GraphicPlayList {
     fn set_current_intern(&mut self, current: usize, by_click: bool) {
         if self.texts.len() > 0 && current != self.current {
             if self.current < self.texts.len() {
-                self.texts[self.current].set_color(&Color::new_RGB(255, 255, 255));
+                self.texts[self.current].set_color(&Color::new_rgb(255, 255, 255));
             }
-            self.texts[current].set_color(&Color::new_RGB(255, 125, 25));
+            self.texts[current].set_color(&Color::new_rgb(255, 125, 25));
             self.current = current;
             self.need_to_draw = true;
             let tmp_to_draw = self.to_draw;
 
-            if by_click == false && self.texts.len() as isize * 22is >= (self.cleaner.get_size().y as isize - 1) {
-                if self.current as isize + 2is >= self.to_draw as isize + self.add_to_view {
-                    self.set_to_add(current as isize + 2is - tmp_to_draw as isize);
+            if by_click == false && self.texts.len() as isize * 22isize >= (self.cleaner.get_size().y as isize - 1) {
+                if self.current as isize + 2isize >= self.to_draw as isize + self.add_to_view {
+                    self.set_to_add(current as isize + 2isize - tmp_to_draw as isize);
                 } else if (self.current as isize) < self.add_to_view {
                     self.set_to_add(current as isize);
                 }
@@ -134,7 +134,7 @@ impl GraphicPlayList {
         self.texts.remove(pos);
         let tmp = Vector2f{x: self.cleaner.get_position().x, y: self.cleaner.get_position().y};
         self.set_position(&tmp);
-        if self.musics.len() == 0us || self.texts.len() == 0us {
+        if self.musics.len() == 0usize || self.texts.len() == 0usize {
             panic!("GraphicPlayList cannot be empty");
         }
         self.need_to_draw = true;
@@ -146,14 +146,14 @@ impl GraphicElement for GraphicPlayList {
         GraphicPlayList {
             musics: Vec::new(),
             texts: Vec::new(),
-            to_draw: 0us,
-            current: 1us,
+            to_draw: 0usize,
+            current: 1usize,
             cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x - 2f32, y: size.y - 2f32}) {
                 Some(l) => l,
                 None => panic!("Cannot create cleaner for GraphicPlayList")
             },
             hover_element: None,
-            add_to_view: 0is,
+            add_to_view: 0isize,
             need_to_draw: true,
             has_mouse: false,
             font: match font {
@@ -178,7 +178,7 @@ impl GraphicElement for GraphicPlayList {
                 }
                 pos += 22f32;
             }
-            if self.to_draw > 0 && self.to_draw * 22us > limit as usize + 2us {
+            if self.to_draw > 0 && self.to_draw * 22usize > limit as usize + 2usize {
                 self.to_draw -= 1;
             }
         }
@@ -224,18 +224,18 @@ impl GraphicElement for GraphicPlayList {
         match self.hover_element {
             Some(s) => {
                 if self.current == tmp {
-                    self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
+                    self.texts[s].set_color(&Color::new_rgb(255, 255, 255));
                     self.hover_element = None;
                 } else if s != tmp {
-                    self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
+                    self.texts[s].set_color(&Color::new_rgb(255, 255, 255));
                     self.hover_element = Some(tmp);
-                    self.texts[tmp].set_color(&Color::new_RGB(255, 175, 100));
+                    self.texts[tmp].set_color(&Color::new_rgb(255, 175, 100));
                 }
             }
             None => {
                 if self.current != tmp {
                     self.hover_element = Some(tmp);
-                    self.texts[tmp].set_color(&Color::new_RGB(255, 175, 100));
+                    self.texts[tmp].set_color(&Color::new_rgb(255, 175, 100));
                 }
             }
         }
@@ -249,7 +249,7 @@ impl GraphicElement for GraphicPlayList {
             if tmp < self.texts.len() {
                 self.hover_element = match self.hover_element {
                     Some(s) => {
-                        self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
+                        self.texts[s].set_color(&Color::new_rgb(255, 255, 255));
                         None
                     }
                     None => None
@@ -263,7 +263,7 @@ impl GraphicElement for GraphicPlayList {
         if self.has_mouse {
             match self.hover_element {
                 Some(s) => {
-                    self.texts[s].set_color(&Color::new_RGB(255, 255, 255));
+                    self.texts[s].set_color(&Color::new_rgb(255, 255, 255));
                     self.hover_element = None;
                     self.need_to_draw = true;
                 }
@@ -279,7 +279,7 @@ impl GraphicElement for GraphicPlayList {
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
-        let mut it = 0is;
+        let mut it = 0isize;
 
         win.draw(&self.cleaner);
         if self.texts.len() > 0 {

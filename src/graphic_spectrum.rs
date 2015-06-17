@@ -23,9 +23,9 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use rsfml::graphics::rc;
-use rsfml::system::vector2::{Vector2f};
-use rsfml::graphics::{RenderWindow, Color, RectangleShape, Font, RenderTarget};
+use sfml::graphics::rc;
+use sfml::system::vector2::{Vector2f};
+use sfml::graphics::{RenderWindow, Color, RectangleShape, Font, RenderTarget};
 use graphic_element::GraphicElement;
 
 pub struct GraphicSpectrum {
@@ -49,7 +49,7 @@ impl GraphicSpectrum {
             it += 1;
         }
         self.set_position(position);
-        self.cleaner.set_fill_color(&Color::new_RGB(0, 0, 0));
+        self.cleaner.set_fill_color(&Color::new_rgb(0, 0, 0));
         self
     }
 
@@ -100,7 +100,7 @@ impl GraphicElement for GraphicSpectrum {
     }
 
     fn set_position(&mut self, position: &Vector2f) {
-        let mut it = 0us;
+        let mut it = 0usize;
 
         for tmp in self.spectrum.iter_mut() {
             tmp.set_position(&Vector2f{x: it as f32 + position.x, y: self.cleaner.get_size().y + position.y});
