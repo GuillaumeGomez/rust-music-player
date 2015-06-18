@@ -69,9 +69,9 @@ fn main() {
         return;
     }
 
-    let fmod = match FmodSys::new() {
+    let fmod = match Sys::new() {
         Ok(f) => {
-            f.init_with_parameters(10i32, FmodInitFlag(rfmod::FMOD_INIT_NORMAL));
+            f.init_with_parameters(10i32, InitFlag(rfmod::INIT_NORMAL));
             f
         },
         Err(e) => panic!("FmodSys.new : {:?}", e)

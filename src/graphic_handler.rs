@@ -104,24 +104,24 @@ impl GraphicHandler {
         }.init()
     }
 
-    pub fn set_music(&mut self, fmod: &rfmod::FmodSys, name: String) -> Result<rfmod::Sound, String> {
-        match fmod.create_sound(&name, Some(rfmod::FmodMode(rfmod::FMOD_SOFTWARE | rfmod::FMOD_3D)), None) {
+    pub fn set_music(&mut self, fmod: &rfmod::Sys, name: String) -> Result<rfmod::Sound, String> {
+        match fmod.create_sound(&name, Some(rfmod::Mode(rfmod::SOFTWARE | rfmod::_3D)), None) {
             Ok(s) => {
                 s.set_3D_min_max_distance(5f32, 10000f32);
                 self.musics.set_current(self.playlist.get_pos());
-                self.music_bar.maximum = match s.get_length(rfmod::FMOD_TIMEUNIT_MS) {
+                self.music_bar.maximum = match s.get_length(rfmod::TIMEUNIT_MS) {
                     Ok(l) => l as usize,
                     Err(_) => 0usize
                 };
                 if self.playlist.get_nb_musics() > 1 {
-                    s.set_mode(rfmod::FmodMode(rfmod::FMOD_LOOP_OFF));
+                    s.set_mode(rfmod::Mode(rfmod::LOOP_OFF));
                 } else {
-                    s.set_mode(rfmod::FmodMode(rfmod::FMOD_LOOP_NORMAL));
+                    s.set_mode(rfmod::Mode(rfmod::LOOP_NORMAL));
                 }
                 Ok(s)
             }
             Err(err) => {
-                println!("FmodSys.create_sound failed on this file : {}\nError : {:?}", name, err);
+                println!("FmodSys::create_sound failed on this file : {}\nError : {:?}", name, err);
                 self.musics.remove_music(self.playlist.get_pos());
                 self.playlist.remove_current();
                 if self.playlist.get_nb_musics() == 0 {
@@ -156,7 +156,7 @@ impl GraphicHandler {
     }
 
     fn set_chan_params(&mut self, chan: &rfmod::Channel) {
-        chan.set_3D_attributes(&rfmod::FmodVector{x: 0f32, y: 0f32, z: 0f32}, &Default::default());
+        chan.set_3D_attributes(&rfmod::Vector{x: 0f32, y: 0f32, z: 0f32}, &Default::default());
         chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
     }
 
@@ -164,7 +164,7 @@ impl GraphicHandler {
         match chan.is_playing() {
             Ok(b) => {
                 if b == true {
-                    let position = match chan.get_position(rfmod::FMOD_TIMEUNIT_MS) {
+                    let position = match chan.get_position(rfmod::TIMEUNIT_MS) {
                         Ok(p) => p,
                         Err(e) => {
                             println!("Error on channel.get_position: {:?}", e);
@@ -210,7 +210,7 @@ impl GraphicHandler {
         }
     }
 
-    pub fn start(&mut self, window: &mut RenderWindow, fmod: &rfmod::FmodSys) {
+    pub fn start(&mut self, window: &mut RenderWindow, fmod: &rfmod::Sys) {
         let mut old_position = 100usize;
         let mut tmp_s = self.playlist.get_current();
         let mut sound = match self.set_music(fmod, tmp_s) {
@@ -222,18 +222,18 @@ impl GraphicHandler {
             Err(e) => panic!("sound.play : {:?}", e)
         };
         self.set_chan_params(&chan);
-        let forward = rfmod::FmodVector {
+        let forward = rfmod::Vector {
             x: 0f32,
             y: 0f32,
             z: 1f32
         };
-        let up = rfmod::FmodVector {
+        let up = rfmod::Vector {
             x: 0f32,
             y: 1f32,
             z: 0f32
         };
-        let mut listener_pos = rfmod::FmodVector::new();
-        let mut last_pos = rfmod::FmodVector::new();
+        let mut listener_pos = rfmod::Vector::new();
+        let mut last_pos = rfmod::Vector::new();
 
         window.clear(&Color::black());
 
@@ -313,7 +313,7 @@ impl GraphicHandler {
 
                             if self.music_bar.is_inside(&v) {
                                 self.music_bar.clicked(&v);
-                                chan.set_position(self.music_bar.get_real_value(), rfmod::FMOD_TIMEUNIT_MS);
+                                chan.set_position(self.music_bar.get_real_value(), rfmod::TIMEUNIT_MS);
                             } else if self.volume_bar.is_inside(&v) {
                                 self.volume_bar.clicked(&v);
                                 chan.set_volume(self.volume_bar.get_real_value() as f32 / 100f32);
@@ -401,7 +401,7 @@ impl GraphicHandler {
             };
             fmod.set_3D_listener_attributes(0,
                 &listener_pos,
-                &rfmod::FmodVector{
+                &rfmod::Vector{
                     x: (listener_pos.x - last_pos.x) * 30f32,
                     y: (listener_pos.y - last_pos.y) * 30f32,
                     z: (listener_pos.z - last_pos.z) * 30f32},
