@@ -20,8 +20,7 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-use std::path::Path;
-use std::fs::PathExt;
+use std::fs;
 
 pub struct PlayList {
     musics: Vec<String>,
@@ -44,10 +43,11 @@ impl PlayList {
         let mut tmp = Vec::new();
 
         for it in self.musics.iter() {
-            let fd = Path::new(&it);
-
-            if fd.is_file() {
-                tmp.push(it.clone());
+            match fs::metadata(&it) {
+                Ok(ref m) if m.is_file() => {
+                    tmp.push(it.clone());
+                }
+                _ => {}
             }
         }
         self.musics = tmp.clone();
@@ -60,7 +60,9 @@ impl PlayList {
             actual: 0usize
         };
 
-        p.musics.push_all(vec);
+        for it in vec {
+            p.musics.push(it.clone());
+        }
         p.init()
     }
 

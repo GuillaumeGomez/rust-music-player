@@ -56,8 +56,8 @@ impl GraphicHandler {
         self.volume_bar.set_maximum(100usize);
         self.volume_bar.set_progress(100);
         self.spectrum_button.set_pushed(true);
-        self.spectrum_button.set_label(&String::from_str("Spectrum"));
-        self.position_button.set_label(&String::from_str("3D position"));
+        self.spectrum_button.set_label(&("Spectrum".to_owned()));
+        self.position_button.set_label(&("3D position".to_owned()));
         self
     }
 
@@ -125,7 +125,7 @@ impl GraphicHandler {
                 self.musics.remove_music(self.playlist.get_pos());
                 self.playlist.remove_current();
                 if self.playlist.get_nb_musics() == 0 {
-                    Err(String::from_str("No more music"))
+                    Err("No more music".to_owned())
                 } else {
                     let tmp_s = self.playlist.get_current();
 
@@ -178,9 +178,11 @@ impl GraphicHandler {
                                 self.spectrum.update_spectrum(&match chan.get_spectrum(256usize, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
                                     Ok(s) => s,
                                     Err(_) => {
-                                        let mut tmp = Vec::new();
+                                        let mut tmp = Vec::with_capacity(256);
 
-                                        tmp.push_all(&[0f32; 256]);
+                                        for _ in 0..256 {
+                                            tmp.push(0f32);
+                                        }
                                         tmp
                                     }
                                 }, &f);
@@ -189,9 +191,11 @@ impl GraphicHandler {
                                 self.spectrum.update_spectrum(&match chan.get_spectrum(512usize, Some(0i32), Some(rfmod::DspFftWindow::Rect)) {
                                     Ok(s) => s,
                                     Err(_) => {
-                                        let mut tmp = Vec::new();
+                                        let mut tmp = Vec::with_capacity(256);
 
-                                        tmp.push_all(&[0f32; 256]);
+                                        for _ in 0..256 {
+                                            tmp.push(0f32);
+                                        }
                                         tmp
                                     }
                                 }, &Vec::new());

@@ -20,8 +20,6 @@
 * 3. This notice may not be removed or altered from any source distribution.
 */
 
-#![feature(collections, path_ext)]
-
 extern crate rfmod;
 extern crate sfml;
 extern crate num;
@@ -83,8 +81,8 @@ fn main() {
         Some(window) => window,
         None => panic!("Cannot create a new Render Window.")
     };
-    
-    let mut graph = GraphicHandler::new(&window, PlayList::from_slice(args.tail()));
+
+    let mut graph = GraphicHandler::new(&window, PlayList::from_slice(&args[1..]));
     window.set_vertical_sync_enabled(true);
     window.set_framerate_limit(30u32);
     graph.start(&mut window, &fmod);
