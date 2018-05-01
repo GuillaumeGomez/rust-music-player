@@ -22,22 +22,27 @@
 
 #![allow(dead_code)]
 
-use sfml::system::vector2::{Vector2f};
-use sfml::graphics::{RenderWindow, Color, Font};
+use sfml::graphics::{Color, Font, RenderWindow};
+use sfml::system::Vector2f;
 
-pub trait GraphicElement {
-	fn new_init(size: &Vector2f, position: &Vector2f, color: &Color, additional: Option<&Font>) -> Self;
-	fn draw(&mut self, window: &mut RenderWindow);
-	fn is_inside(&self, position: &Vector2f) -> bool;
-	fn clicked(&mut self, position: &Vector2f);
-	fn set_position(&mut self, position: &Vector2f);
-	fn get_position(&self) -> Vector2f;
-	fn set_size(&mut self, size: &Vector2f);
-	fn get_size(&self) -> Vector2f;
-	fn get_min_size(&self) -> Vector2f;
-	fn get_max_size(&self) -> Option<Vector2f>;
-	fn get_element_name<'a>(&'a self) -> &'a String;
-	fn set_element_name(&mut self, name: &String);
-	fn cursor_moved(&mut self, position: &Vector2f);
-	fn mouse_leave(&mut self);
+pub trait GraphicElement<'b> {
+    fn new_init(
+        size: &Vector2f,
+        position: &Vector2f,
+        color: &Color,
+        additional: Option<&'b Font>,
+    ) -> Self;
+    fn draw(&mut self, window: &mut RenderWindow);
+    fn is_inside(&self, position: &Vector2f) -> bool;
+    fn clicked(&mut self, position: &Vector2f);
+    fn set_position(&mut self, position: &Vector2f);
+    fn get_position(&self) -> Vector2f;
+    fn set_size(&mut self, size: &Vector2f);
+    fn get_size(&self) -> Vector2f;
+    fn get_min_size(&self) -> Vector2f;
+    fn get_max_size(&self) -> Option<Vector2f>;
+    fn get_element_name<'a>(&'a self) -> &'a String;
+    fn set_element_name(&mut self, name: &String);
+    fn cursor_moved(&mut self, position: &Vector2f);
+    fn mouse_leave(&mut self);
 }
