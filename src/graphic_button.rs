@@ -23,37 +23,39 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use sfml::graphics::rc;
-use sfml::system::vector2::{Vector2f};
-use sfml::graphics::{RenderWindow, Color, RectangleShape, Text, Font, RenderTarget};
-use std::rc::Rc;
-use std::cell::RefCell;
 use graphic_element::GraphicElement;
+use sfml::graphics::Shape;
+use sfml::graphics::Transformable;
+use sfml::graphics::{Color, Font, RectangleShape, RenderTarget, RenderWindow, Text};
+use sfml::system::Vector2f;
 
-pub struct GraphicButton {
-    label: rc::Text,
-    button: rc::RectangleShape,
+pub struct GraphicButton<'b> {
+    label: Text<'b>,
+    button: RectangleShape<'b>,
     need_to_draw: bool,
     pushed: bool,
     has_mouse: bool,
-    name: String
+    name: String,
 }
 
-impl GraphicButton {
-    fn init(mut self, position: &Vector2f) -> GraphicButton {
+impl<'b> GraphicButton<'b> {
+    fn init(mut self, position: &Vector2f) -> GraphicButton<'b> {
         self.set_position(position);
-        self.button.set_fill_color(&Color::new_rgb(10, 10, 10));
-        self.button.set_outline_color(&Color::new_rgb(255, 255, 255));
+        self.button.set_fill_color(&Color::rgb(10, 10, 10));
+        self.button.set_outline_color(&Color::rgb(255, 255, 255));
         self.button.set_outline_thickness(1f32);
         self
     }
 
     pub fn set_label(&mut self, label: &String) {
-        if label != &self.label.get_string() {
+        if label != &self.label.string() {
             self.label.set_string(&label);
-            let size = self.label.get_local_bounds().width;
-            self.label.set_position(&Vector2f{x: (self.button.get_size().x - 1f32 - size as f32) / 2f32 + self.button.get_position().x as f32,
-                                              y: self.button.get_position().y + (self.button.get_size().y - 20f32) / 2f32 - 2f32});
+            let size = self.label.local_bounds().width;
+            self.label.set_position(Vector2f {
+                x: (self.button.size().x - 1f32 - size as f32) / 2f32
+                    + self.button.position().x as f32,
+                y: self.button.position().y + (self.button.size().y - 20f32) / 2f32 - 2f32,
+            });
             self.need_to_draw = true;
         }
     }
@@ -66,44 +68,49 @@ impl GraphicButton {
         if self.pushed != pushed {
             self.pushed = pushed;
             if self.pushed {
-                self.button.set_fill_color(&Color::new_rgb(205, 187, 100));
+                self.button.set_fill_color(&Color::rgb(205, 187, 100));
             } else {
-                self.button.set_fill_color(&Color::new_rgb(10, 10, 10));
+                self.button.set_fill_color(&Color::rgb(10, 10, 10));
             }
             self.need_to_draw = true;
         }
     }
 }
 
-impl GraphicElement for GraphicButton {
-    fn new_init(size: &Vector2f, position: &Vector2f, unused: &Color, font: Option<&Font>) -> GraphicButton {
+impl<'b> GraphicElement<'b> for GraphicButton<'b> {
+    fn new_init(
+        size: &Vector2f,
+        position: &Vector2f,
+        unused: &Color,
+        font: Option<&'b Font>,
+    ) -> GraphicButton<'b> {
         GraphicButton {
-            label: match rc::Text::new_init("", Rc::new(RefCell::new(match font {
-                    Some(f) => f.clone(),
-                    None => panic!("GraphicButton needs Font")
-                })), 20) {
-                Some(t) => t,
-                None => panic!("Cannot create label for GraphicButton")
-            },
-            button: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32}) {
-                Some(l) => l,
-                None => panic!("Cannot create cleaner for GraphicButton")
-            },
+            label: Text::new("", &font.clone().unwrap(), 20),
+            button: RectangleShape::with_size(Vector2f {
+                x: size.x as f32 - 2f32,
+                y: size.y as f32 - 2f32,
+            }),
             need_to_draw: true,
             pushed: false,
             has_mouse: false,
-            name: String::new()
+            name: String::new(),
         }.init(position)
     }
 
     fn cursor_moved(&mut self, position: &Vector2f) {
         if !self.has_mouse {
-            let tmp = self.button.get_size();
-            let pos = self.button.get_position();
+            let tmp = self.button.size();
+            let pos = self.button.position();
 
             self.button.set_outline_thickness(2f32);
-            self.button.set_size(&Vector2f{x: tmp.x - 2f32, y: tmp.y - 2f32});
-            self.button.set_position(&Vector2f{x: pos.x + 1f32, y: pos.y + 1f32});
+            self.button.set_size(Vector2f {
+                x: tmp.x - 2f32,
+                y: tmp.y - 2f32,
+            });
+            self.button.set_position(Vector2f {
+                x: pos.x + 1f32,
+                y: pos.y + 1f32,
+            });
             self.need_to_draw = true;
             self.has_mouse = true;
         }
@@ -124,35 +131,52 @@ impl GraphicElement for GraphicButton {
     }
 
     fn set_position(&mut self, position: &Vector2f) {
-        let size = self.label.get_local_bounds().width;
+        let size = self.label.local_bounds().width;
 
-        self.button.set_position(&Vector2f{x: position.x + 1f32, y: position.y + 1f32});
-        self.label.set_position(&Vector2f{x: (self.button.get_size().x - 1f32 - size as f32) / 2f32 + self.button.get_position().x,
-                                              y: self.button.get_position().y + (self.button.get_size().y - 20f32) / 2f32 - 2f32});
+        self.button.set_position(Vector2f {
+            x: position.x + 1f32,
+            y: position.y + 1f32,
+        });
+        self.label.set_position(Vector2f {
+            x: (self.button.size().x - 1f32 - size as f32) / 2f32 + self.button.position().x,
+            y: self.button.position().y + (self.button.size().y - 20f32) / 2f32 - 2f32,
+        });
         self.need_to_draw = true;
     }
 
     fn get_position(&self) -> Vector2f {
-        let tmp = self.button.get_position();
+        let tmp = self.button.position();
 
-        Vector2f{x: tmp.x - 1f32, y: tmp.y - 1f32}
+        Vector2f {
+            x: tmp.x - 1f32,
+            y: tmp.y - 1f32,
+        }
     }
 
     fn set_size(&mut self, size: &Vector2f) {
-        let tmp = self.button.get_position();
+        let tmp = self.button.position();
 
-        self.button.set_size(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32});
+        self.button.set_size(Vector2f {
+            x: size.x as f32 - 2f32,
+            y: size.y as f32 - 2f32,
+        });
         self.set_position(&tmp);
     }
 
     fn get_size(&self) -> Vector2f {
-        let tmp = self.button.get_size();
+        let tmp = self.button.size();
 
-        Vector2f{x: tmp.x + 2f32, y: tmp.y + 2f32}
+        Vector2f {
+            x: tmp.x + 2f32,
+            y: tmp.y + 2f32,
+        }
     }
 
     fn get_min_size(&self) -> Vector2f {
-        Vector2f{x: 100f32, y: 40f32}
+        Vector2f {
+            x: 100f32,
+            y: 40f32,
+        }
     }
 
     fn get_max_size(&self) -> Option<Vector2f> {
@@ -160,18 +184,26 @@ impl GraphicElement for GraphicButton {
     }
 
     fn is_inside(&self, pos: &Vector2f) -> bool {
-        pos.y >= self.button.get_position().y && pos.y <= self.button.get_position().y + self.button.get_size().y &&
-        pos.x >= self.button.get_position().x && pos.x <= self.button.get_position().x + self.button.get_size().x
+        pos.y >= self.button.position().y
+            && pos.y <= self.button.position().y + self.button.size().y
+            && pos.x >= self.button.position().x
+            && pos.x <= self.button.position().x + self.button.size().x
     }
 
     fn mouse_leave(&mut self) {
         if self.has_mouse {
-            let tmp = self.button.get_size();
-            let pos = self.button.get_position();
+            let tmp = self.button.size();
+            let pos = self.button.position();
 
             self.button.set_outline_thickness(1f32);
-            self.button.set_size(&Vector2f{x: tmp.x + 2f32, y: tmp.y + 2f32});
-            self.button.set_position(&Vector2f{x: pos.x - 1f32, y: pos.y - 1f32});
+            self.button.set_size(Vector2f {
+                x: tmp.x + 2f32,
+                y: tmp.y + 2f32,
+            });
+            self.button.set_position(Vector2f {
+                x: pos.x - 1f32,
+                y: pos.y - 1f32,
+            });
             self.need_to_draw = true;
             self.has_mouse = false;
         }

@@ -19,30 +19,29 @@
 *
 * 3. This notice may not be removed or altered from any source distribution.
 */
-
+extern crate num;
 extern crate rfmod;
 extern crate sfml;
-extern crate num;
 
-use sfml::window::{ContextSettings, VideoMode, Close};
-use sfml::graphics::{RenderWindow};
-use rfmod::*;
-use playlist::PlayList;
 use graphic_handler::GraphicHandler;
+use playlist::PlayList;
+use rfmod::*;
+use sfml::graphics::Font;
+use sfml::graphics::RenderWindow;
+use sfml::window::{ContextSettings, Style, VideoMode};
 use std::env;
-
-mod graphic_handler;
-mod playlist;
-mod graphic_playlist;
-mod graphic_timer;
-mod progress_bar;
-mod graphic_spectrum;
 mod graphic_button;
-mod graphic_sound_position;
 mod graphic_element;
+mod graphic_handler;
+mod graphic_playlist;
+mod graphic_sound_position;
+mod graphic_spectrum;
+mod graphic_timer;
+mod playlist;
+mod progress_bar;
 
 fn main() {
-    let mut args : Vec<String> = env::args().collect();
+    let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
         println!("USAGE: music_player [music_files ...]");
@@ -54,6 +53,7 @@ fn main() {
         println!("Here is the list of the binded keyboards keys:");
         println!("* ESC : exit the program");
         println!("* Up / Down : change the music");
+        println!("* R : turn on/off song repeat");
         println!("* Add / Subtract : change the music volume");
         println!("* Space : pause / unpause current music");
         println!("* BackSpace : reset user position (in 3D)");
@@ -71,18 +71,17 @@ fn main() {
         Ok(f) => {
             f.init_with_parameters(10i32, InitFlag(rfmod::INIT_NORMAL));
             f
-        },
-        Err(e) => panic!("FmodSys.new : {:?}", e)
+        }
+        Err(e) => panic!("FmodSys.new : {:?}", e),
     };
-    let mut window = match RenderWindow::new(VideoMode::new_init(800, 600, 32), 
-                                             "Music Player", 
-                                             Close, 
-                                             &ContextSettings::default()) {
-        Some(window) => window,
-        None => panic!("Cannot create a new Render Window.")
-    };
-
-    let mut graph = GraphicHandler::new(&window, PlayList::from_slice(&args[1..]));
+    let mut window = RenderWindow::new(
+        VideoMode::new(800, 600, 32),
+        "Music Player",
+        Style::CLOSE,
+        &ContextSettings::default(),
+    );
+    let font = Font::from_file("font/arial.ttf").unwrap();
+    let mut graph = GraphicHandler::new(&window, PlayList::from_slice(&args[1..]), &font);
     window.set_vertical_sync_enabled(true);
     window.set_framerate_limit(30u32);
     graph.start(&mut window, &fmod);

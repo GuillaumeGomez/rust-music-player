@@ -23,120 +23,144 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-use sfml::graphics::rc;
-use sfml::system::vector2::{Vector2f};
-use sfml::graphics::{RenderWindow, Color, Text, Font, RectangleShape, RenderTarget};
-use std::rc::Rc;
-use std::cell::RefCell;
 use graphic_element::GraphicElement;
+use sfml::graphics::Shape;
+use sfml::graphics::Transformable;
+use sfml::graphics::{Color, Font, RectangleShape, RenderTarget, RenderWindow, Text};
+use sfml::system::Vector2f;
 
-pub struct GraphicTimer {
-    timer: rc::Text,
-    cleaner: rc::RectangleShape,
+pub struct GraphicTimer<'a> {
+    timer: Text<'a>,
+    cleaner: RectangleShape<'a>,
     need_to_draw: bool,
-    name: String
+    name: String,
 }
 
-impl GraphicTimer {
-    fn init(mut self, position: &Vector2f) -> GraphicTimer {
+impl<'b> GraphicTimer<'b> {
+    fn init(mut self, position: &Vector2f) -> GraphicTimer<'b> {
         self.set_position(position);
-        self.cleaner.set_fill_color(&Color::new_rgb(0, 0, 0));
-        self.cleaner.set_outline_color(&Color::new_rgb(255, 255, 255));
+        self.cleaner.set_fill_color(&Color::rgb(0, 0, 0));
+        self.cleaner.set_outline_color(&Color::rgb(255, 255, 255));
         self.cleaner.set_outline_thickness(1f32);
         self
     }
 
     pub fn update_display(&mut self, position: usize, length: usize) {
-        let st = format!("{:02}:{:02} / {:02}:{:02}",
-            position / 1000 / 60, position / 1000 % 60, length / 1000 / 60, length / 1000 % 60);
+        let st = format!(
+            "{:02}:{:02} / {:02}:{:02}",
+            position / 1000 / 60,
+            position / 1000 % 60,
+            length / 1000 / 60,
+            length / 1000 % 60
+        );
 
-        if st != self.timer.get_string() {
+        if st != self.timer.string() {
             self.need_to_draw = true;
             self.timer.set_string(&st);
-            let size = self.timer.get_local_bounds().width;
-            let y = self.timer.get_position().y;
-            self.timer.set_position(&Vector2f{x: (self.cleaner.get_size().x - 1f32 - size as f32) / 2f32 + self.cleaner.get_position().x,
-                                              y: y});
+            let size = self.timer.local_bounds().width;
+            let y = self.timer.position().y;
+            self.timer.set_position(Vector2f {
+                x: (self.cleaner.size().x - 1f32 - size as f32) / 2f32 + self.cleaner.position().x,
+                y: y,
+            });
         }
     }
 }
 
-impl GraphicElement for GraphicTimer {
-    fn new_init(size: &Vector2f, position: &Vector2f, unused: &Color, font: Option<&Font>) -> GraphicTimer {
+impl<'b> GraphicElement<'b> for GraphicTimer<'b> {
+    fn new_init(
+        size: &Vector2f,
+        position: &Vector2f,
+        unused: &Color,
+        font: Option<&'b Font>,
+    ) -> GraphicTimer<'b> {
         GraphicTimer {
-            timer: match rc::Text::new_init("", Rc::new(RefCell::new(match font {
-                    Some(f) => f.clone(),
-                    None => panic!("GraphicTimer needs Font")
-                })), 20) {
-                Some(t) => t,
-                None => panic!("Cannot create GraphicTimer")
-            },
-            cleaner: match rc::RectangleShape::new_init(&Vector2f{x: size.x as f32 - 2f32, y: size.y as f32 - 2f32}) {
-                Some(l) => l,
-                None => panic!("Cannot create cleaner for GraphicTimer")
-            },
+            timer: Text::new("", &font.unwrap(), 20),
+            cleaner: RectangleShape::with_size(Vector2f {
+                x: size.x as f32 - 2f32,
+                y: size.y as f32 - 2f32,
+            }),
             need_to_draw: true,
-            name: String::new()
+            name: String::new(),
         }.init(position)
     }
 
     fn set_position(&mut self, position: &Vector2f) {
-        let size = self.timer.get_local_bounds().width;
+        let size = self.timer.local_bounds().width;
 
-        self.cleaner.set_position(&Vector2f{x: position.x + 1f32, y: position.y + 1f32});
-        self.timer.set_position(&Vector2f{x: (self.cleaner.get_size().x - 1f32 - size as f32) / 2f32 + self.cleaner.get_position().x,
-                                              y: (self.cleaner.get_size().y - 20f32) / 2f32 + self.cleaner.get_position().y - 2f32});
+        self.cleaner.set_position(Vector2f {
+            x: position.x + 1f32,
+            y: position.y + 1f32,
+        });
+        self.timer.set_position(Vector2f {
+            x: (self.cleaner.size().x - 1f32 - size as f32) / 2f32 + self.cleaner.position().x,
+            y: (self.cleaner.size().y - 20f32) / 2f32 + self.cleaner.position().y - 2f32,
+        });
         self.need_to_draw = true;
     }
 
     fn get_position(&self) -> Vector2f {
-        let tmp = self.cleaner.get_position();
+        let tmp = self.cleaner.position();
 
-        Vector2f{x: tmp.x - 1f32, y: tmp.y - 1f32}
+        Vector2f {
+            x: tmp.x - 1f32,
+            y: tmp.y - 1f32,
+        }
     }
 
     fn set_size(&mut self, size: &Vector2f) {
-        let tmp = self.cleaner.get_position();
+        let tmp = self.cleaner.position();
 
-        self.cleaner.set_size(&Vector2f{x: size.x - 2f32, y: size.y - 2f32});
+        self.cleaner.set_size(Vector2f {
+            x: size.x - 2f32,
+            y: size.y - 2f32,
+        });
         self.set_position(&tmp);
     }
 
     fn get_size(&self) -> Vector2f {
-        let tmp = self.cleaner.get_size();
+        let tmp = self.cleaner.size();
 
-        Vector2f{x: tmp.x + 2f32, y: tmp.y + 2f32}
+        Vector2f {
+            x: tmp.x + 2f32,
+            y: tmp.y + 2f32,
+        }
     }
 
     fn draw(&mut self, win: &mut RenderWindow) {
         //if self.need_to_draw {
-            win.draw(&self.cleaner);
-            win.draw(&self.timer);
-            self.need_to_draw = false;
+        win.draw(&self.cleaner);
+        win.draw(&self.timer);
+        self.need_to_draw = false;
         //}
     }
 
     fn get_min_size(&self) -> Vector2f {
-        Vector2f{x: 100f32, y: 40f32}
+        Vector2f {
+            x: 100f32,
+            y: 40f32,
+        }
     }
 
     fn get_max_size(&self) -> Option<Vector2f> {
-        Some(Vector2f{x: 200f32, y: 40f32})
+        Some(Vector2f {
+            x: 200f32,
+            y: 40f32,
+        })
     }
 
     fn is_inside(&self, pos: &Vector2f) -> bool {
-        pos.y >= self.cleaner.get_position().y && pos.y <= self.cleaner.get_position().y + self.cleaner.get_size().y &&
-        pos.x >= self.cleaner.get_position().x && pos.x <= self.cleaner.get_position().x + self.cleaner.get_size().x
+        pos.y >= self.cleaner.position().y
+            && pos.y <= self.cleaner.position().y + self.cleaner.size().y
+            && pos.x >= self.cleaner.position().x
+            && pos.x <= self.cleaner.position().x + self.cleaner.size().x
     }
 
-    fn cursor_moved(&mut self, position: &Vector2f) {
-    }
+    fn cursor_moved(&mut self, position: &Vector2f) {}
 
-    fn clicked(&mut self, position: &Vector2f) {
-    }
+    fn clicked(&mut self, position: &Vector2f) {}
 
-    fn mouse_leave(&mut self) {
-    }
+    fn mouse_leave(&mut self) {}
 
     fn set_element_name(&mut self, name: &String) {
         self.name = name.clone();

@@ -24,7 +24,8 @@ use std::fs;
 
 pub struct PlayList {
     musics: Vec<String>,
-    actual: usize
+    actual: usize,
+    repeat: bool,
 }
 
 impl PlayList {
@@ -35,7 +36,8 @@ impl PlayList {
     pub fn new() -> PlayList {
         PlayList {
             musics: Vec::new(),
-            actual: 0usize
+            actual: 0usize,
+            repeat: false,
         }
     }
 
@@ -57,7 +59,8 @@ impl PlayList {
     pub fn from_slice(vec: &[String]) -> PlayList {
         let mut p = PlayList {
             musics: Vec::with_capacity(vec.len()),
-            actual: 0usize
+            actual: 0usize,
+            repeat: false,
         };
 
         for it in vec {
@@ -141,5 +144,13 @@ impl PlayList {
 
     pub fn get_pos(&self) -> usize {
         self.actual
+    }
+
+    pub fn get_repeat(&self) -> bool {
+        self.repeat
+    }
+
+    pub fn set_repeat(&mut self, repeat: bool) {
+        self.repeat = repeat;
     }
 }
