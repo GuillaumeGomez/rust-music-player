@@ -376,7 +376,8 @@ impl<'b> GraphicHandler<'b> {
                             listener_pos.z = self.graph_sound.y;
                         }
                         Key::R => {
-                            self.playlist.set_repeat(!self.playlist.get_repeat());
+                            let repeat = self.playlist.get_repeat();
+                            self.playlist.set_repeat(!repeat);
                         }
                         _ => {}
                     },
@@ -486,7 +487,6 @@ impl<'b> GraphicHandler<'b> {
                         true => self.playlist.get_current(),
                         false => self.playlist.get_next(),
                     };
-                    eprintln!("Next song");
                     sound = match self.set_music(fmod, tmp_s) {
                         Ok(s) => s,
                         Err(e) => panic!("Error : {:?}", e),

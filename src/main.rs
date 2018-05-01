@@ -19,7 +19,6 @@
 *
 * 3. This notice may not be removed or altered from any source distribution.
 */
-#![feature(nll)]
 extern crate num;
 extern crate rfmod;
 extern crate sfml;
